@@ -2,12 +2,13 @@ import { Game, CONFIG } from './engine.js';
 import { screenCracks } from './damage.js';
 import { ArcadeAudio } from './audio.js';
 import { mountCompanion } from './companion.js';
+import { shareControls, mountSharing } from './sharing.js';
 const $ = (selector) => document.querySelector(selector);
 const app = $('#app');
 const game = new Game();
 const help = $('#help-dialog');
 let drawnPhase = '', drawnPause = false, fieldValue = '', frame = 0, returnFocus = null, helpPaused = false;
-let disposeCompanion=()=>{};
+let disposeCompanion=()=>{},disposeSharing=()=>{};
 let best = 0;
 try { best = Number(localStorage.getItem('bounce-back-best-v2')) || 0; } catch {}
 let soundOn = true;
@@ -85,7 +86,7 @@ function slots(){return game.words.map((_,i)=>`<span class="recall-slot ${i<game
 function pauseMarkup(){return `<div class="pause-panel" role="region" aria-label="Game paused">${mascot("rest")}<h2>A little breather.</h2><p>Your words and your time will be right here.</p><button class="primary-button" id="resume-button">keep bouncing <span>↗</span></button><button class="text-button" id="paused-finish">finish this run</button></div>`;}
 function summary(){
  const record=game.score>0&&game.score>=best;
- return `<section class="summary ${game.gameOver?'game-over':''}"><div class="game-board">${mascot(game.gameOver?"rest":"proud","daven-summary")}<div class="phase-label">${game.gameOver?'no bounces left':'a good place to land'}</div><h2>${game.gameOver?'GAME OVER.':game.history.length?'That’s a good little run.':'Every start is something.'}</h2><p class="game-description">${game.gameOver?'Three bounces used. Take a breath, then try a fresh run.':game.bestComeback>=2?'You turned a few setbacks into a pretty great comeback.':'A little wiser. Ready for another bounce?'}</p><div class="summary-score">${game.score.toLocaleString()}</div>${best?personalBest("summary-best",record):'<div class="summary-best">your first adventure is in the books.</div>'}<div class="summary-stats"><div><strong>${game.history.length}</strong><span>LEVELS CLEARED</span></div><div><strong>${game.totalBounces}</strong><span>TOTAL BOUNCES</span></div><div><strong>${game.bestComeback}</strong><span>BEST COMEBACK</span></div>${game.gameOver?'<div><strong>'+game.level+'</strong><span>LAST LEVEL</span></div>':''}</div>${game.history.length?'<div class="summary-history" aria-label="Level results">'+game.history.map(h=>`<div class="history-row"><span>level ${String(h.level).padStart(2,'0')}</span><span>${h.bounces===0?'✦ clean clear':h.bounces+' bounce'+(h.bounces===1?'':'s')}</span><span>+${h.points.toLocaleString()}</span></div>`).join('')+'</div>':''}<div class="summary-actions"><button class="primary-button" id="restart-button">another round? <span aria-hidden="true">↶</span></button><button class="text-button" id="home-button">back home</button></div></div></section>`;
+ return `<section class="summary ${game.gameOver?'game-over':''}"><div class="game-board">${game.gameOver?'<div class="summary-brand">wouncy <span>by Team Pheonix</span></div>':''}${mascot(game.gameOver?"rest":"proud","daven-summary")}<div class="phase-label">${game.gameOver?'no bounces left':'a good place to land'}</div><h2>${game.gameOver?'GAME OVER.':game.history.length?'That’s a good little run.':'Every start is something.'}</h2><p class="game-description">${game.gameOver?'Three bounces used. Take a breath, then try a fresh run.':game.bestComeback>=2?'You turned a few setbacks into a pretty great comeback.':'A little wiser. Ready for another bounce?'}</p><div class="summary-score">${game.score.toLocaleString()}</div>${best?personalBest("summary-best",record):'<div class="summary-best">your first adventure is in the books.</div>'}<div class="summary-stats"><div><strong>${game.history.length}</strong><span>LEVELS CLEARED</span></div><div><strong>${game.totalBounces}</strong><span>TOTAL BOUNCES</span></div><div><strong>${game.bestComeback}</strong><span>BEST COMEBACK</span></div>${game.gameOver?'<div><strong>'+game.level+'</strong><span>LAST LEVEL</span></div>':''}</div>${game.history.length?'<div class="summary-history" aria-label="Level results">'+game.history.map(h=>`<div class="history-row"><span>level ${String(h.level).padStart(2,'0')}</span><span>${h.bounces===0?'✦ clean clear':h.bounces+' bounce'+(h.bounces===1?'':'s')}</span><span>+${h.points.toLocaleString()}</span></div>`).join('')+'</div>':''}<div class="summary-actions"><button class="primary-button" id="restart-button">another round? <span aria-hidden="true">↶</span></button><button class="text-button" id="home-button">back home</button></div></div>${game.gameOver?shareControls():''}</section>`;
 }
 function render(force=false){
  if(!force&&drawnPhase===game.phase&&drawnPause===game.paused)return;
@@ -97,8 +98,9 @@ function render(force=false){
  document.body.dataset.phase=game.phase;
  $('#screen-damage').innerHTML=screenCracks(damage);
  document.body.classList.toggle('impact',game.phase==='fail'||(game.phase==='summary'&&game.gameOver));
- disposeCompanion();disposeCompanion=()=>{};
+ disposeCompanion();disposeCompanion=()=>{};disposeSharing();disposeSharing=()=>{};
  app.innerHTML=game.phase==='menu'?menu():game.phase==='summary'?summary():gameScreen();
+ if(game.phase==='summary'&&game.gameOver)disposeSharing=mountSharing($('.summary'),{score:game.score,level:game.level,cleared:game.history.length});
  if(game.phase==='menu')disposeCompanion=mountCompanion($('.menu'));
  if(game.phase==='type'&&!game.paused){const input=$('#word-input');input.value=fieldValue;input.focus({preventScroll:true});}
  if(game.paused&&!help.open)$('#resume-button')?.focus({preventScroll:true});

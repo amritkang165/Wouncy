@@ -49,3 +49,9 @@ This independently made game is not an official Hack Club product.
 
 FONT
 Jua by Woowahan Brothers, SIL Open Font License. See OFL.txt.
+
+SCREENSHOT HELPER
+html-to-image 1.11.13 by bubkoo and contributors (MIT).
+https://github.com/bubkoo/html-to-image
+Bundled from the npm release; only its source-map comment was removed.
+License: ../vendor/html-to-image-LICENSE.txt

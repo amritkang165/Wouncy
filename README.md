@@ -4,7 +4,7 @@ Wouncy is a browser memory typing arcade for the Haven game jam, with a matte sa
 
 ## Run locally
 
-Requires Node.js 20 or later. The game has no runtime dependencies.
+Requires Node.js 20 or later. The game needs no runtime installation. The optional game-over screenshot feature bundles a small MIT-licensed html-to-image helper locally.
 
 ```sh
 git clone https://github.com/amritkang165/Wouncy.git
@@ -58,4 +58,6 @@ The failure chant is bundled as a short PCM recording synthesized with the macOS
 
 Scoring now follows the PRD formula. Personal bests use a new storage key so the prototype’s old word-count bonuses do not inflate the leaderboard.
 
-Game over shows the last level reached, preserves your score, and saves a new personal best automatically. The summary provides a restart button; there is no third retry or scuffed-bounce continuation.
+Game over shows the last level reached, preserves your score, and saves a new personal best automatically. Game-over results can be shared with score text and a locally generated PNG screenshot. WhatsApp, X, and LinkedIn buttons open drafts and save the image for attaching; supported devices also offer native image sharing. Nothing is automatically posted. The summary provides a restart button; there is no third retry or scuffed-bounce continuation.
+
+For sharing from an itch.io iframe, set `PUBLIC_GAME_URL` in `dist/sharing.js` to the public itch.io project page when it is available. Without it, sharing uses a full itch.io parent page URL when provided, otherwise the current playable game URL; an origin-only referrer is never mistaken for the game page.
