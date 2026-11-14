@@ -1,4 +1,5 @@
 import { Game, CONFIG } from './engine.js';
+import { screenCracks } from './damage.js';
 const $ = (selector) => document.querySelector(selector);
 const app = $('#app');
 const game = new Game();
@@ -32,13 +33,13 @@ function playSound(kind) {
 soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem('bounce-back-sound',String(soundOn));}catch{}updateSound();if(soundOn)playSound('start');});
 updateSound();
 const iconArrow='<span aria-hidden="true">↗</span>';
-const cracks = () => game.bounces ? `<svg class="cracks" viewBox="0 0 850 400" preserveAspectRatio="none" aria-hidden="true"><path d="M0 20 35 64 21 80 61 113 55 142M35 64 72 59 90 83M850 365 805 330 820 305 786 273 795 253${game.bounces>=2?'M850 0 790 45 804 75 766 98 772 124M790 45 752 39 735 63M0 370 48 340 45 316 78 303':''}${game.bounces>=3?'M425 0 437 29 422 45 455 74M0 200 23 213 19 234 40 250M850 165 826 184 835 201 810 230':''}"/></svg>` : '';
+
 function aside(message) { return `<div class="daven-aside"><img src="assets/daven.webp" alt="Daven, your hedgehog cheerleader"><p><small>Daven says</small>${message}</p></div>`; }
 function menu() {
  return `<section class="menu" aria-label="Welcome to Bounce Back"><div class="little-label">a memory typing arcade</div><div class="hero"><div class="hero-copy"><h1 class="title"><span>BOUNCE</span><span class="second-line">BACK</span><i class="title-spark" aria-hidden="true">✳</i></h1><p class="tagline">A little memory. A little typing.<br>A whole lot of <strong>second chances.</strong></p></div><div class="character-scene"><span class="character-spark" aria-hidden="true">✧</span><span class="speech">you’ve got this.<br>probably.<span></span></span><img class="daven-main" src="assets/daven.webp" alt="Daven, a friendly orange hedgehog"><div class="character-shadow"></div><span class="character-spark two" aria-hidden="true">✦</span></div></div><div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button><p class="keyboard-note">or press <kbd>enter ↵</kbd> to jump in</p></div><div class="steps-strip" aria-label="How it works"><div class="mini-step"><span class="step-number">1</span><div><strong>memorize.</strong><small>give those words a good look.</small></div></div><span class="step-arrow" aria-hidden="true">→</span><div class="mini-step"><span class="step-number">2</span><div><strong>type it back.</strong><small>same words. same order.</small></div></div><span class="step-arrow" aria-hidden="true">↶</span><div class="mini-step"><span class="step-number">3</span><div><strong>miss? bounce back.</strong><small>try again with a little more time.</small></div></div></div><p class="best-note">${best?'your personal best: '+best.toLocaleString()+' ✦':'no game overs. just comebacks.'}</p></section>`;
 }
 function scoreboard() {
- return `<div class="scoreboard" aria-label="Run statistics"><div class="stat"><span class="stat-label">level</span><span class="stat-value">${String(game.level).padStart(2,'0')}</span></div><div class="stat"><span class="stat-label">score</span><span class="stat-value">${game.score.toLocaleString()}</span></div><div class="stat"><span class="stat-label">multiplier</span><span class="stat-value">${game.multiplier}<small>×</small></span></div><div class="stat"><span class="stat-label">bounces</span><span class="stat-value">${game.totalBounces}<small> ↶</small></span></div></div>`;
+ return `<div class="scoreboard" aria-label="Run statistics"><div class="stat"><span class="stat-label">level</span><span class="stat-value">${String(game.level).padStart(2,'0')}</span></div><div class="stat"><span class="stat-label">score</span><span class="stat-value">${game.score.toLocaleString()}</span></div><div class="stat"><span class="stat-label">multiplier</span><span class="stat-value">${game.multiplier}<small>×</small></span></div><div class="stat"><span class="stat-label">bounces</span><span class="stat-value">${game.totalBounces}<small> ↶</small></span></div></div>${game.bounces?`<div class="bounce-status" role="status"><span class="bounce-tier ${game.bounces===1?'current':''}">01 · +5s · cracked</span><span class="bounce-tier ${game.bounces===2?'current':''}">02 · +3s · distorted</span><span class="bounce-tier ${game.scuffed?'current':''}">03+ · +0s · SCUFFED</span></div>`:''}`;
 }
 function timer() { return `<div class="timer-row" role="timer" aria-label="${game.scuffed?'Shared time for memorizing and typing':'Time remaining'}"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div><span class="timer-number" id="timer-number"></span></div>`; }
 function gameScreen() {
@@ -56,10 +57,10 @@ function gameScreen() {
   message=game.bounces>=2?'I never doubted you. Okay, maybe a tiny bit.':'Nicely done. Let’s pretend I’m not impressed.';
  } else {
   const bonus=CONFIG.bounceBonuses[Math.min(game.bounces-1,2)];
-  content=`<div class="result-icon" aria-hidden="true">↶</div><div class="phase-label">a detour, not a dead end</div><h1 class="game-title">BOUNCE BACK.</h1><p class="result-subtitle">${game.reason}<br>Let’s give those words another go.</p><div class="result-words" aria-label="The correct sequence">${game.words.map((w,i)=>`<span class="result-word">${i+1}. ${w}</span>`).join('')}</div><button class="primary-button" id="retry-button">one more bounce <span aria-hidden="true">↶</span></button><div class="bounce-note">${bonus?'+'+bonus+' seconds to memorize':'SCUFFED BOUNCE · +0 seconds · one clock to look and type'} · same words · level ${game.level}</div><div class="board-hint">press Enter to try again</div>`;
+  content=`<div class="result-icon" aria-hidden="true">↶</div><div class="phase-label">a detour, not a dead end</div><h1 class="game-title">BOUNCE BACK.</h1><p class="result-subtitle">${game.reason}<br>Let’s give those words another go.</p><div class="result-words" aria-label="The correct sequence">${game.words.map((w,i)=>`<span class="result-word ${i===game.index?'missed-word':''}">${i+1}. ${w}</span>`).join('')}</div><button class="primary-button" id="retry-button">one more bounce <span aria-hidden="true">↶</span></button><div class="bounce-note">${bonus?'+'+bonus+' seconds to memorize':'SCUFFED BOUNCE · +0 seconds · one clock to look and type'} · same words · level ${game.level}</div><div class="board-hint">press Enter to try again</div>`;
   message=game.bounces===1?'That was just a warm-up. Obviously.':game.bounces===2?'Third time’s the charm. That’s a real thing, right?':'At this point, I’m emotionally invested.';
  }
- return `<section class="game-shell bounce-${Math.min(game.bounces,3)}"><div class="game-topline"><span class="run-label"><span class="live-dot"></span>continuous climb</span><div class="pause-controls">${['memorize','type'].includes(phase)?'<button id="pause-button" aria-label="Pause game">Ⅱ pause</button>':''}<button id="finish-button">finish run ↗</button></div></div>${scoreboard()}<div class="game-board ${phase==='fail'?'result-board fail-board':phase==='pass'?'result-board':''}">${content}${cracks()}${game.paused?pauseMarkup():''}</div>${aside(message)}</section>`;
+ return `<section class="game-shell bounce-${Math.min(game.bounces,3)}"><div class="game-topline"><span class="run-label"><span class="live-dot"></span>continuous climb</span><div class="pause-controls">${['memorize','type'].includes(phase)?'<button id="pause-button" aria-label="Pause game">Ⅱ pause</button>':''}<button id="finish-button">finish run ↗</button></div></div>${scoreboard()}<div class="game-board ${phase==='fail'?'result-board fail-board':phase==='pass'?'result-board':''}">${content}${game.paused?pauseMarkup():''}</div>${aside(message)}</section>`;
 }
 function slots(){return game.words.map((_,i)=>`<span class="recall-slot ${i<game.index?'locked':i===game.index?'active':''}">${i<game.index?game.locked[i]+' <span class="tick" aria-hidden="true">✓</span>':i===game.index?'?':String(i+1).padStart(2,'0')}</span>`).join('');}
 function pauseMarkup(){return '<div class="pause-panel" role="region" aria-label="Game paused"><img src="assets/daven.webp" alt=""><h2>A little breather.</h2><p>Your words and your time will be right here.</p><button class="primary-button" id="resume-button">keep bouncing <span>↗</span></button><button class="text-button" id="paused-finish">finish this run</button></div>';}
@@ -70,6 +71,10 @@ function summary(){
 function render(force=false){
  if(!force&&drawnPhase===game.phase&&drawnPause===game.paused)return;
  const last=drawnPhase; drawnPhase=game.phase;drawnPause=game.paused;
+ const damage=['menu','summary'].includes(game.phase)?0:Math.min(3,game.bounces);
+ document.body.dataset.damage=damage;
+ $('#screen-damage').innerHTML=screenCracks(damage);
+ document.body.classList.toggle('impact',game.phase==='fail');
  app.innerHTML=game.phase==='menu'?menu():game.phase==='summary'?summary():gameScreen();
  if(game.phase==='type'&&!game.paused){const input=$('#word-input');input.value=fieldValue;input.focus({preventScroll:true});}
  if(game.paused&&!help.open)$('#resume-button')?.focus({preventScroll:true});

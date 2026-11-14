@@ -38,6 +38,8 @@ await page.getByRole('button',{name:'okay, I’ve got them'}).click();
 await page.getByLabel('Type the next word',{exact:true}).fill('definitelywrong');
 await page.keyboard.press('Enter');await page.locator('#retry-button').waitFor();
 assert.match(await page.locator('.bounce-note').innerText(),/\+5 seconds/);
+assert.ok(await page.locator('.screen-cracks path').count()>0);
+assert.equal(await page.locator('body').getAttribute('data-damage'),'1');
 await page.waitForTimeout(100);await page.screenshot({path:'artifacts/fail-desktop.png'});
 await page.keyboard.press('Enter');
 assert.deepEqual(await page.locator('.word-card').evaluateAll(es=>es.map(e=>e.childNodes[1].textContent)),words);
@@ -88,6 +90,12 @@ for(let bounce=1;bounce<=3;bounce++){
  await page.locator('#retry-button').click();
 }
 assert.match(await page.locator('.board-hint').innerText(),/looking uses your typing time/);
+assert.equal(await page.locator('body').getAttribute('data-damage'),'3');
+assert.match(await page.locator('.bounce-tier.current').innerText(),/SCUFFED/);
+const fractures=await page.locator('#screen-damage').innerHTML();
+await page.locator('#pause-button').click();assert.equal(await page.locator('#screen-damage').innerHTML(),fractures);
+await page.locator('#resume-button').click();
+await page.screenshot({path:'artifacts/scuffed-desktop.png'});
 await page.waitForTimeout(400);
 const sharedBefore=Number.parseFloat(await page.locator('#timer-number').innerText());
 await page.locator('#ready-button').click();await page.waitForTimeout(70);
