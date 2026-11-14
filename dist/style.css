@@ -96,3 +96,32 @@ body[data-damage="2"] .landscape,body[data-damage="2"] .game-shell{filter:satura
 @media(max-height:800px) and (min-width:760px){.wouncy-title{font-size:clamp(88px,10vw,132px)}.tagline{font-size:22px;margin-top:18px}.landing-description{font-size:12px}}
 @media(max-width:600px){.hero{display:flex}.wouncy-title{font-size:clamp(72px,23vw,115px);letter-spacing:-4px;line-height:1.1;gap:7px;margin:0 0 15px}.wordmark-flower{font-size:24px;margin-top:16px}.wouncy-o{transform:translateY(-5px) rotate(-9deg)}.tagline{font-size:19px;line-height:1.4;max-width:260px;margin:4px 0 0}.landing-description{order:1;text-align:center;font-size:10px;line-height:1.8;margin:9px 0 3px;max-width:280px}.character-scene{margin-top:6px}.start-area{margin-top:18px}}
 @media(max-width:370px){.wouncy-title{font-size:75px;letter-spacing:-4px;gap:6px}.wordmark-flower{font-size:21px;margin-top:15px}.tagline{font-size:18px}.landing-description{font-size:10px}}
+
+/* Original Haven artwork, animated as a little companion in every part of the run. */
+.daven-stage{--daven-size:116px;position:relative;isolation:isolate;width:var(--daven-size);height:calc(var(--daven-size)*.96);display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;vertical-align:middle}
+.daven-stage img{display:block;width:100%;height:100%;object-fit:contain;position:relative;z-index:1;filter:drop-shadow(0 6px 0 #916c2822);transform-origin:50% 88%}
+.daven-ground{position:absolute;bottom:0;left:19%;width:62%;height:8px;background:#75843b25;border-radius:50%;z-index:-1}
+.daven-prop{position:absolute;z-index:2;right:-1px;top:0;color:var(--orange-dark);font-size:26px;line-height:1;border-radius:50%;background:#fff9decc;padding:4px 7px;transform:rotate(10deg);box-shadow:0 2px 0 #a9903a22}
+.daven-hero{--daven-size:258px}.daven-hero .daven-prop{right:-5px;top:28px;font-size:31px;color:#b58228;background:transparent;box-shadow:none}
+.daven-welcome img{animation:daven-greet 3.2s ease-in-out infinite}.daven-welcome .daven-ground{animation:daven-shadow 3.2s ease-in-out infinite}
+.daven-aside{max-width:650px;gap:22px;margin-top:15px;align-items:center;min-height:120px}.daven-aside .daven-stage img{width:100%;animation:none;transform:none}.daven-aside p{font-size:17px;padding:16px 22px;background:#fff9dea6;border-radius:17px 20px 19px 4px}.daven-aside p small{line-height:1.5;font-size:9px}
+.daven-think img{animation:daven-ponder 4s ease-in-out infinite!important}.daven-think .daven-prop{top:-3px;right:-4px;letter-spacing:3px;font-size:24px}
+.daven-focus{--daven-size:110px}.daven-focus img{animation:daven-type 1.8s steps(2,end) infinite!important}.daven-focus .daven-prop{top:auto;bottom:-2px;right:0;left:0;font-size:29px;line-height:.8;background:#e9e7c4;border:1px solid #a3aa71;border-radius:7px;padding:3px 12px;transform:none;box-shadow:0 3px 0 #a3aa71}
+.daven-bounce img{animation:daven-rebound 1.8s ease-in-out infinite!important}.daven-bounce .daven-prop{font-size:34px;background:transparent;box-shadow:none}
+.daven-celebrate img,.daven-proud img{animation:daven-cheer 1.6s ease-in-out infinite!important}.daven-celebrate .daven-prop,.daven-proud .daven-prop{color:#b58b20;right:-10px;background:transparent;box-shadow:none}
+.daven-rest{--daven-size:110px}.daven-rest img{transform:rotate(-18deg)!important;animation:daven-breathe 4s ease-in-out infinite!important}.daven-rest .daven-prop{top:-5px;font-size:21px;letter-spacing:3px;background:transparent;box-shadow:none;color:#78864c}
+.pause-panel .daven-stage img{width:100%}.pause-panel h2{margin-top:18px}
+.daven-summary{--daven-size:130px;margin:-10px auto 17px;display:flex}.summary h2{font-size:43px}.summary-score{margin-top:20px}.summary .game-board{overflow:visible}
+.daven-help{--daven-size:100px;float:right;margin:13px 10px 7px 15px}.daven-help .daven-prop{right:-9px;top:-4px;font-size:21px}.daven-guide img{animation:daven-ponder 4s ease-in-out infinite}
+@keyframes daven-greet{0%,100%{transform:translateY(0) rotate(-5deg)}40%{transform:translateY(-15px) rotate(5deg)}65%{transform:translateY(-8px) rotate(-3deg)}}
+@keyframes daven-shadow{0%,100%{transform:scaleX(1);opacity:1}40%{transform:scaleX(.8);opacity:.6}}
+@keyframes daven-ponder{0%,100%{transform:rotate(-7deg)}50%{transform:translateY(-4px) rotate(6deg)}}
+@keyframes daven-type{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(3px) rotate(2deg)}}
+@keyframes daven-rebound{0%,100%{transform:translateY(0) rotate(-9deg) scale(1.03,.97)}45%{transform:translateY(-17px) rotate(11deg) scale(.97,1.03)}65%{transform:translateY(0) rotate(-6deg) scale(1.07,.93)}}
+@keyframes daven-cheer{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-12px) rotate(7deg)}}
+@keyframes daven-breathe{0%,100%{scale:1}50%{scale:1.025}}
+@media(max-width:800px){.daven-hero{--daven-size:215px}}
+@media(max-width:580px){.character-scene{height:188px;margin-top:18px}.daven-hero{--daven-size:180px}.speech{right:-27px;top:8px}.character-spark{left:9px}.character-spark.two{right:-2px}.daven-aside{gap:15px;min-height:100px;align-items:center}.daven-aside .daven-stage{--daven-size:88px}.daven-aside p{font-size:14px;padding:12px 14px;min-width:0}.daven-aside p small{font-size:8px;letter-spacing:1px}.daven-prop{font-size:21px}.daven-focus .daven-prop{font-size:25px}.daven-summary{--daven-size:105px;margin-bottom:13px}.summary h2{font-size:34px}.summary .game-board{padding:26px 18px}.summary-actions{flex-direction:column;gap:8px}.daven-help{--daven-size:80px;margin-right:0}dialog{padding:30px 24px}.pause-panel .daven-stage{--daven-size:105px}}
+@media(prefers-reduced-motion:reduce){.daven-stage img,.daven-stage span{animation:none!important;transition:none!important}}
+.credits-link{display:inline-block;margin-left:10px;text-decoration:underline!important;text-underline-offset:3px}
+@media(max-width:580px) and (max-height:800px){main:has(.game-shell){padding-top:6px;padding-bottom:18px}.game-shell .game-topline{margin-bottom:8px}.game-shell .scoreboard{padding:10px 0;margin-bottom:12px}.game-shell .game-board{min-height:320px;padding-top:20px;padding-bottom:20px}.game-shell .timer-row{margin-top:18px}.game-shell .word-field{min-height:115px;padding:20px 0}.game-shell .recall-slots{min-height:50px;margin:17px 0 14px}.game-shell .daven-aside{margin-top:13px;min-height:96px}}

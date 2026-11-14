@@ -18,12 +18,15 @@ function updateSound() {
  soundButton.querySelector('span').textContent=soundOn?'sound on':'sound off';
  soundButton.querySelector('path').setAttribute('d',soundOn?'M11 5 6 9H3v6h3l5 4V5Zm5 3a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14':'M11 5 6 9H3v6h3l5 4V5Zm5 4 5 6m0-6-5 6');
 }
+function syncAudio(){audioDirector.setScene({phase:game.phase,bounces:game.bounces||0,paused:game.paused,hidden:document.hidden,help:help.open});}
 function playSound(kind) { audioDirector.cue(kind,game.bounces||0); }
 soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem('bounce-back-sound',String(soundOn));}catch{}updateSound();audioDirector.enable(soundOn).then(()=>{if(soundOn)playSound('start');});});
 updateSound();
 const iconArrow='<span aria-hidden="true">↗</span>';
 
-function aside(message) { return `<div class="daven-aside"><img src="assets/daven.webp" alt="Daven, your hedgehog cheerleader"><p><small>Daven says</small>${message}</p></div>`; }
+const DAVEN={welcome:['daven-excited.webp','Daven welcoming you','✦'],think:['daven.webp','Daven pondering the words','···'],focus:['haven-hedgehog.webp','Daven typing along','⌨'],bounce:['daven.webp','Daven bouncing back','↶'],celebrate:['daven-excited.webp','Daven celebrating your clear','✦'],rest:['daven.webp','Daven taking a breather','z z'],guide:['haven-hedgehog.webp','Daven showing you the ropes','!'],proud:['daven-excited.webp','Daven cheering for your run','★']};
+function mascot(action,extra='') { const [file,label,prop]=DAVEN[action];return `<div class="daven-stage daven-${action} ${extra}" role="img" aria-label="${label}"><span class="daven-prop" aria-hidden="true">${prop}</span><img src="assets/${file}" alt="" draggable="false"><span class="daven-ground" aria-hidden="true"></span></div>`; }
+function aside(message,action) { return `<div class="daven-aside">${mascot(action)}<p><small>Daven · ${action==='think'?'thinking cap on':action==='focus'?'quietly rooting for you':action==='bounce'?'comeback coach':action==='celebrate'?'your biggest fan':'in your corner'}</small>${message}</p></div>`; }
 function menu() {
  return `<section class="menu" aria-label="Welcome to Wouncy">
   <div class="menu-banner"><span class="little-label"><span class="label-flower" aria-hidden="true">✳</span> a memory typing arcade</span><span class="menu-note">a little wobbly. always bouncy. <span aria-hidden="true">↙</span></span></div>
@@ -38,8 +41,7 @@ function menu() {
    <span class="character-spark" aria-hidden="true">✧</span>
    <span class="floating-word word-one" aria-hidden="true"><small>01</small> remember</span>
    <span class="floating-word word-two" aria-hidden="true"><small>02</small> wouncy</span>
-   <img class="daven-main" src="assets/daven.webp" alt="Daven, a friendly orange hedgehog">
-   <div class="character-shadow" aria-hidden="true"></div>
+   ${mascot("welcome","daven-hero")}
    <span class="character-spark two" aria-hidden="true">✦</span>
    <span class="character-name"><span aria-hidden="true">↖</span> daven, your comeback coach</span>
   </div></div>
@@ -75,19 +77,19 @@ function gameScreen() {
   content=`<div class="result-icon" aria-hidden="true">↶</div><div class="phase-label">a detour, not a dead end</div><h1 class="game-title">BOUNCE BACK.</h1><p class="result-subtitle">${game.reason}<br>Let’s give those words another go.</p><div class="result-words" aria-label="The correct sequence">${game.words.map((w,i)=>`<span class="result-word ${i===game.index?'missed-word':''}">${i+1}. ${w}</span>`).join('')}</div><button class="primary-button" id="retry-button">one more bounce <span aria-hidden="true">↶</span></button><div class="bounce-note">${bonus?'+'+bonus+' seconds to memorize':'SCUFFED BOUNCE · +0 seconds · one clock to look and type'} · same words · level ${game.level}</div><div class="board-hint">press Enter to try again</div>`;
   message=game.bounces===1?'That was just a warm-up. Obviously.':game.bounces===2?'Third time’s the charm. That’s a real thing, right?':'At this point, I’m emotionally invested.';
  }
- return `<section class="game-shell bounce-${Math.min(game.bounces,3)}"><div class="game-topline"><span class="run-label"><span class="live-dot"></span>continuous climb</span><div class="pause-controls">${['memorize','type'].includes(phase)?'<button id="pause-button" aria-label="Pause game">Ⅱ pause</button>':''}<button id="finish-button">finish run ↗</button></div></div>${scoreboard()}<div class="game-board ${phase==='fail'?'result-board fail-board':phase==='pass'?'result-board':''}">${content}${game.paused?pauseMarkup():''}</div>${aside(message)}</section>`;
+ return `<section class="game-shell bounce-${Math.min(game.bounces,3)}"><div class="game-topline"><span class="run-label"><span class="live-dot"></span>continuous climb</span><div class="pause-controls">${['memorize','type'].includes(phase)?'<button id="pause-button" aria-label="Pause game">Ⅱ pause</button>':''}<button id="finish-button">finish run ↗</button></div></div>${scoreboard()}<div class="game-board ${phase==='fail'?'result-board fail-board':phase==='pass'?'result-board':''}">${content}${game.paused?pauseMarkup():''}</div>${aside(message,game.paused?"rest":({memorize:"think",type:"focus",fail:"bounce",pass:"celebrate"}[phase]))}</section>`;
 }
 function slots(){return game.words.map((_,i)=>`<span class="recall-slot ${i<game.index?'locked':i===game.index?'active':''}">${i<game.index?game.locked[i]+' <span class="tick" aria-hidden="true">✓</span>':i===game.index?'?':String(i+1).padStart(2,'0')}</span>`).join('');}
-function pauseMarkup(){return '<div class="pause-panel" role="region" aria-label="Game paused"><img src="assets/daven.webp" alt=""><h2>A little breather.</h2><p>Your words and your time will be right here.</p><button class="primary-button" id="resume-button">keep bouncing <span>↗</span></button><button class="text-button" id="paused-finish">finish this run</button></div>';}
+function pauseMarkup(){return `<div class="pause-panel" role="region" aria-label="Game paused">${mascot("rest")}<h2>A little breather.</h2><p>Your words and your time will be right here.</p><button class="primary-button" id="resume-button">keep bouncing <span>↗</span></button><button class="text-button" id="paused-finish">finish this run</button></div>`;}
 function summary(){
  const record=game.score>0&&game.score>=best;
- return `<section class="summary"><div class="game-board"><div class="phase-label">a good place to land</div><h2>${game.history.length?'That’s a good little run.':'Every start is something.'}</h2><p class="game-description">${game.bestComeback>=2?'You turned a few setbacks into a pretty great comeback.':'A little wiser. Ready for another bounce?'}</p><div class="summary-score">${game.score.toLocaleString()}</div><div class="summary-best">${record?'✦ a new personal best! ✦':best?'personal best: '+best.toLocaleString():'your first adventure is in the books.'}</div><div class="summary-stats"><div><strong>${game.history.length}</strong><span>LEVELS CLEARED</span></div><div><strong>${game.totalBounces}</strong><span>TOTAL BOUNCES</span></div><div><strong>${game.bestComeback}</strong><span>BEST COMEBACK</span></div></div>${game.history.length?'<div class="summary-history" aria-label="Level results">'+game.history.map(h=>`<div class="history-row"><span>level ${String(h.level).padStart(2,'0')}</span><span>${h.bounces===0?'✦ clean clear':h.bounces+' bounce'+(h.bounces===1?'':'s')}</span><span>+${h.points.toLocaleString()}</span></div>`).join('')+'</div>':''}<div class="summary-actions"><button class="primary-button" id="restart-button">another round? <span aria-hidden="true">↶</span></button><button class="text-button" id="home-button">back home</button></div></div>${aside(game.totalBounces?'The important thing? You kept coming back.':'Same time, same tiny brain? I’ll be here.')}</section>`;
+ return `<section class="summary"><div class="game-board">${mascot("proud","daven-summary")}<div class="phase-label">a good place to land</div><h2>${game.history.length?'That’s a good little run.':'Every start is something.'}</h2><p class="game-description">${game.bestComeback>=2?'You turned a few setbacks into a pretty great comeback.':'A little wiser. Ready for another bounce?'}</p><div class="summary-score">${game.score.toLocaleString()}</div><div class="summary-best">${record?'✦ a new personal best! ✦':best?'personal best: '+best.toLocaleString():'your first adventure is in the books.'}</div><div class="summary-stats"><div><strong>${game.history.length}</strong><span>LEVELS CLEARED</span></div><div><strong>${game.totalBounces}</strong><span>TOTAL BOUNCES</span></div><div><strong>${game.bestComeback}</strong><span>BEST COMEBACK</span></div></div>${game.history.length?'<div class="summary-history" aria-label="Level results">'+game.history.map(h=>`<div class="history-row"><span>level ${String(h.level).padStart(2,'0')}</span><span>${h.bounces===0?'✦ clean clear':h.bounces+' bounce'+(h.bounces===1?'':'s')}</span><span>+${h.points.toLocaleString()}</span></div>`).join('')+'</div>':''}<div class="summary-actions"><button class="primary-button" id="restart-button">another round? <span aria-hidden="true">↶</span></button><button class="text-button" id="home-button">back home</button></div></div></section>`;
 }
 function render(force=false){
  if(!force&&drawnPhase===game.phase&&drawnPause===game.paused)return;
  const last=drawnPhase; drawnPhase=game.phase;drawnPause=game.paused;
  const damage=['menu','summary'].includes(game.phase)?0:game.bounces;
- audioDirector.setScene({phase:game.phase,bounces:game.bounces||0,paused:game.paused});
+ syncAudio();
  document.body.dataset.damage=Math.min(3,damage);
  document.body.dataset.phase=game.phase;
  $('#screen-damage').innerHTML=screenCracks(damage);
@@ -109,6 +111,7 @@ function render(force=false){
  $('#word-input')?.addEventListener('input',event=>{fieldValue=event.target.value;});
  $('#word-input')?.addEventListener('keydown',event=>{if(event.key===' '&&!event.isComposing){event.preventDefault();submit();}});
  if(last!==game.phase){
+  if(game.phase==='type')playSound('recall');
   if(game.phase==='pass'){playSound('pass');confetti();}
   if(game.phase==='fail')playSound('fail');
   if(!['type','menu'].includes(game.phase)&&!game.paused)app.focus({preventScroll:true});
@@ -126,7 +129,7 @@ function submit(){
  if(game.phase!=='type'){render();return;}
  if(game.index>before){playSound('lock');$('#recall-slots').innerHTML=slots();$('#word-progress').textContent=game.index+1;input.placeholder='next word…';}
 }
-function finish(){game.finish();if(game.score>best){best=game.score;try{localStorage.setItem('bounce-back-best-v2',String(best));}catch{}}render();}
+function finish(){game.finish();if(game.score>best){best=game.score;try{localStorage.setItem('bounce-back-best-v2',String(best));}catch{}}render();playSound('finish');}
 function pause(){const input=$('#word-input');if(input)fieldValue=input.value;game.pause();render();}
 function resume(){game.resume();render();}
 function updateTimer(){
@@ -135,13 +138,13 @@ function updateTimer(){
  number.parentElement.classList.toggle('urgent',game.remaining<3);
 }
 function openHelp(){
- returnFocus=document.activeElement;helpPaused=game.pause();render();help.showModal();
+ returnFocus=document.activeElement;helpPaused=game.pause();render();help.showModal();syncAudio();
 }
 function closeHelp(){help.close();}
 $('#help-button').addEventListener('click',openHelp);
 $('#close-help').addEventListener('click',closeHelp);
 $('#got-it').addEventListener('click',closeHelp);
-help.addEventListener('close',()=>{if(helpPaused){game.resume();render();}helpPaused=false;if(returnFocus?.isConnected)returnFocus.focus();else if(game.phase==='type')$('#word-input')?.focus();});
+help.addEventListener('close',()=>{if(helpPaused){game.resume();render();}helpPaused=false;syncAudio();if(returnFocus?.isConnected)returnFocus.focus();else if(game.phase==='type')$('#word-input')?.focus();});
 help.addEventListener('click',event=>{if(event.target===help){const rect=help.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)help.close();}});
 $('.brand').addEventListener('click',event=>{event.preventDefault();if(!['menu','summary'].includes(game.phase))finish();else{game.phase='menu';render();}});
 document.addEventListener('keydown',event=>{
@@ -153,7 +156,10 @@ document.addEventListener('keydown',event=>{
  if(game.phase==='menu'||game.phase==='summary')start();
  else if(game.phase==='memorize')recall();else if(game.phase==='fail')retry();else if(game.phase==='pass')next();
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden){pause();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();syncAudio();});
+// Unlock only after a real gesture; the saved sound preference always wins.
+document.addEventListener('pointerdown',()=>audioDirector.enable(soundOn),{once:true});
+document.addEventListener('keydown',()=>audioDirector.enable(soundOn),{once:true});
 function confetti(){
  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
  const container=$('#particles');

@@ -1,0 +1,47 @@
+WOUNCY — ASSET CREDITS
+Sources checked 14 November 2026.
+
+BACKGROUND MUSIC
+Juhani Junkala (SubspaceAudio), “4 Chiptunes (Adventure)”
+https://opengameart.org/content/4-chiptunes-adventure
+https://juhanijunkala.com/
+License: CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/
+- stage-1.mp3: “1. Stage 1” (gameplay)
+- stage-select.mp3: “4. Stage Select” (menu and run summary)
+Converted from the original OGG files to 96 kbps MP3. The full loops are retained.
+Author's original license statement: audio/Juhani-Junkala-CC0.txt
+
+SOUND EFFECTS
+Kenney, “UI Audio” https://kenney.nl/assets/ui-audio
+License: CC0 1.0. Original license: audio/Kenney-UI-CC0.txt
+- lock.wav: Audio/click1.ogg
+- recall.wav: Audio/switch3.ogg
+Converted to mono 22050 Hz PCM WAV.
+
+Kenney, “Music Jingles” https://kenney.nl/assets/music-jingles
+License: CC0 1.0. Original license: audio/Kenney-Jingles-CC0.txt
+All selected files come from Audio/Pizzicato jingles/:
+- start.wav: jingles_PIZZI00.ogg (0.42 seconds)
+- clear.wav: jingles_PIZZI02.ogg (capped at 0.45 seconds)
+- retry.wav: jingles_PIZZI04.ogg (0.40 seconds)
+- finish.wav: jingles_PIZZI09.ogg (capped at 1 second)
+Trimmed with a short fade-out and converted to mono 22050 Hz PCM WAV.
+
+The existing bounce-back.wav spoken chant was supplied with the game;
+it is retained from the project's macOS Eddy voice recording.
+
+DAVEN AND SCENERY
+Original Hack Club Haven artwork: https://haven.hackclub.com/
+- daven.webp: existing owner-supplied character
+- daven-excited.webp: https://haven.hackclub.com/images/pitch/excited-daven.webp
+- haven-hedgehog.webp: https://haven.hackclub.com/images/hedgehog.webp
+- faq-sky.webp, faq-bushes-1.webp, faq-bushes-2.webp and
+  footer-bottom-bushes.webp: existing Haven landscape assets
+The original character images are displayed unchanged with CSS motion and props.
+No AI-generated images or music were added. Haven artwork is credited here;
+its reuse rights are separate from the CC0 audio licenses. No blanket license
+for the artwork was found on the Haven page; confirm permission for redistribution.
+This independently made game is not an official Hack Club product.
+
+FONT
+Jua by Woowahan Brothers, SIL Open Font License. See OFL.txt.
