@@ -3,7 +3,7 @@ export const CONFIG=Object.freeze({
  startTime:15,timeStep:2,minTime:4,
  bounceBonuses:Object.freeze([5,3]),bounceLimit:3,
  maxWords:8,maxMultiplier:3,streakStep:.5,
- typingBase:12,typingPerWord:3,comebackPerBounce:100,
+ typingBase:12,typingPerWord:3,comebackPerBounce:100,firstWordBonus:50,
  maxScoringWpm:180
 });
 export function difficulty(level){

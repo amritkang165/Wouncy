@@ -12,10 +12,11 @@ export class Game {
   const d=difficulty(this.level); this.settings=d; this.bounces=0; this.bonusTime=0;
   const pool=[...new Set(WORDS[d.pool])]; this.words=[];
   for(let i=0;i<d.count;i++) this.words.push(pool.splice(Math.floor(this.random()*pool.length),1)[0]);
+  this.specialWord=this.words[Math.floor(this.random()*this.words.length)];
   this.beginMemorize();
  }
  beginMemorize() {
-  this.phase='memorize'; this.index=0; this.locked=[];
+  this.phase='memorize'; this.index=0; this.locked=[];this.wordBonus=0;
   this.duration=this.settings.memorize+this.bonusTime;
   this.started=this.now(); this.deadline=this.started+this.duration*1000;
  }
@@ -35,7 +36,9 @@ export class Game {
   if(!parts.length)return false;
   if(parts.length>this.words.length-this.index){this.fail('A few extra words snuck in.');return false;}
   for(const word of parts){
-   if(word!==this.words[this.index]) { this.fail('A little mixed up. It happens.'); return false; }
+   if(!this.words.includes(word)) { this.fail('That word wasn’t on the list.'); return false; }
+   if(this.locked.includes(word)) { this.fail('That word is already locked in. Each word counts once.'); return false; }
+   if(this.index===0&&word===this.specialWord)this.wordBonus=CONFIG.firstWordBonus;
    this.locked.push(word); this.index++;
    if(this.index===this.words.length){ this.pass(); return true; }
   }
@@ -47,9 +50,9 @@ export class Game {
   if(this.bounces===0){this.streak++;this.multiplier=Math.min(CONFIG.maxMultiplier,1+this.streak*CONFIG.streakStep);}else{this.streak=0;this.multiplier=1;}
   const comeback=this.bounces>=2?this.bounces*CONFIG.comebackPerBounce:0;
   const accuracy=this.locked.length/this.words.length;
-  this.earned=Math.round(wpm*accuracy*this.multiplier)+comeback;
+  this.earned=Math.round(wpm*accuracy*this.multiplier)+comeback+this.wordBonus;
   this.score+=this.earned; this.bestComeback=Math.max(this.bestComeback,this.bounces);
-  this.history.push({level:this.level,bounces:this.bounces,points:this.earned,wpm,accuracy,comeback});
+  this.history.push({level:this.level,bounces:this.bounces,points:this.earned,wpm,accuracy,comeback,wordBonus:this.wordBonus});
   this.phase='pass'; this.resultAt=this.now();
  }
  fail(reason) {

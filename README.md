@@ -1,6 +1,6 @@
 # Wouncy
 
-Wouncy is a browser memory typing arcade for the Haven game jam, with a matte sage, clay, and paper palette. Memorize a word sequence, type it back, and bounce back after a miss. Daven is your slightly sarcastic cheerleader.
+Wouncy is a browser memory typing arcade for the Haven game jam, with a matte sage, clay, and paper palette. Memorize a few words, type them back in any order, and bounce back after a miss. Daven is your slightly sarcastic cheerleader.
 
 ## Run locally
 
@@ -17,9 +17,9 @@ Open http://localhost:4173. The deployable game is entirely inside `dist/` and w
 ## Play
 
 - Enter starts a run and moves from memorizing to recall.
-- Type a word and press Space or Enter to lock it in.
+- Type the remembered words once each, in any order, and press Space or Enter to lock them in. Each level highlights one ★ word: type it first for a +50-point bonus when the level is cleared. Duplicates and words outside the current list count as a miss.
 - The run has a total limit of three bounces. The first miss adds 5 seconds of memorization for a retry, and the second adds 3. The third miss ends the run immediately with a game-over summary. Bounces carry across cleared levels; a new run resets them.
-- Level score is typing speed (WPM) × accuracy (0–1) × streak multiplier. Clean clears raise the multiplier by 0.5×, up to 3×. Clears after 2+ bounces add 100 points per bounce. After each clear, the results stay open until you press Enter or the next-level button.
+- Level score is typing speed (WPM) × accuracy (0–1) × streak multiplier, plus any earned first-word and comeback bonuses. Clean clears raise the multiplier by 0.5×, up to 3×. Clears after 2+ bounces add 100 points per bounce. After each clear, the results stay open until you press Enter or the next-level button.
 - Escape pauses. Leaving the tab or opening instructions automatically pauses an active timer.
 - Finish run shows your score, levels, bounces, comeback, and per-level results. Your best score saves in this browser when storage is available.
 - Sound starts enabled on each visit and can be toggled with the sound button. After the first click or key press, bundled CC0 electronic tracks play on the menu, during a run, and on the summary. Short recorded effects mark starting, hiding words, locking a word, clearing, retrying, and finishing. The existing “BOUNCE BACK” chant plays on failure, and gameplay music and the chant distort progressively with bounce count. Music continues through pause, instructions, and game over. Mute and hidden tabs stop audio; returning continues the music from its saved position while an active run stays paused. All audio loads from local assets.
@@ -56,7 +56,7 @@ Make exactly one descriptive commit per user-requested edit. Include all changes
 
 The failure chant is bundled as a short PCM recording synthesized with the macOS Eddy voice. It needs no speech service or network request beyond loading the local asset.
 
-Scoring now follows the PRD formula. Personal bests use a new storage key so the prototype’s old word-count bonuses do not inflate the leaderboard.
+Scoring uses the speed, accuracy, and streak formula, with comeback bonuses and the +50 highlighted-word-first bonus. Personal bests use a new storage key so the prototype’s old word-count bonuses do not inflate the leaderboard.
 
 Game over shows the last level reached, preserves your score, and saves a new personal best automatically. Game-over results can be shared with score text and a locally generated PNG screenshot. WhatsApp, X, and LinkedIn buttons open drafts and save the image for attaching; supported devices also offer native image sharing. Nothing is automatically posted. The summary provides a restart button; there is no third retry or scuffed-bounce continuation.
 

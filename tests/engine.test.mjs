@@ -10,7 +10,7 @@ test('pause freezes timers and excludes paused time from typing speed',()=>{cons
 test('difficulty caps and multiplier cap keep continuous climb playable',()=>{assert.equal(difficulty(1000).count,8);assert.equal(difficulty(1000).memorize,4);const{game}=fixture();game.start();for(let i=0;i<10;i++){game.recall();game.submit(game.words.join(' '));game.next();}assert.equal(game.multiplier,CONFIG.maxMultiplier);assert.equal(game.level,11);});
 test('blank submission does nothing and late correct answer still fails',()=>{const{game,advance}=fixture();game.start();game.recall();game.submit('   ');assert.equal(game.index,0);advance(21001);game.submit(game.words.join(' '));assert.equal(game.phase,'fail');});
 test('finish freezes the run at summary; restart resets stats',()=>{const{game}=fixture();game.start();game.recall();game.submit('wrong');game.finish();assert.equal(game.phase,'summary');game.start();assert.equal(game.score,0);assert.equal(game.totalBounces,0);assert.equal(game.level,1);assert.deepEqual(game.history,[]);});
-test('extra words cannot be used to bypass exact sequence matching',()=>{const{game}=fixture();game.start();game.recall();game.submit(game.words.join(' ')+' extra');assert.equal(game.phase,'fail');assert.equal(game.score,0);});
+test('extra words cannot bypass completing the remembered set',()=>{const{game}=fixture();game.start();game.recall();game.submit(game.words.join(' ')+' extra');assert.equal(game.phase,'fail');assert.equal(game.score,0);});
 
 test('the third miss ends the run and cannot be retried or counted twice',()=>{
  const{game,advance}=fixture();game.start();
@@ -38,9 +38,9 @@ test('a fresh run resets game over, score, and the full three-bounce budget',()=
  game.start();assert.equal(game.gameOver,false);assert.equal(game.totalBounces,0);assert.equal(game.phase,'memorize');assert.equal(game.score,0);assert.equal(game.bonusTime,0);
 });
 
-test('level score uses speed times accuracy times multiplier, plus only the comeback bonus',()=>{
+test('level score uses speed times accuracy times multiplier, plus earned bonuses',()=>{
  const{game,advance}=fixture();game.start();game.recall();advance(3000);game.submit(game.words.join(' '));
- const last=game.history.at(-1);assert.equal(last.accuracy,1);assert.equal(game.earned,Math.round(last.wpm*last.accuracy*game.multiplier));
+ const last=game.history.at(-1);assert.equal(last.accuracy,1);assert.equal(game.earned,Math.round(last.wpm*last.accuracy*game.multiplier)+last.wordBonus);
 });
 test('a clean clear waits indefinitely for an explicit next action',()=>{
  const{game,advance}=fixture();game.start();game.recall();game.submit(game.words.join(' '));
