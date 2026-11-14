@@ -99,6 +99,8 @@ npm run dev
 
 Open **[localhost:4173](http://localhost:4173)**. That’s it—no build step or runtime dependency install. Keep the terminal open while you play; **Ctrl+C** stops the server.
 
+The game fits the available viewport without page scrolling, including the game-over sharing controls. Compact layouts adapt to phones, landscape play, and the space above a mobile keyboard.
+
 | your little keyboard | its little job |
 | :--- | :--- |
 | **Enter** | Start a run, hide the words when you’re ready, or move to the next level. |
@@ -134,6 +136,7 @@ Small enough for a jam. A few plain browser files doing their little jobs.
 | [`dist/engine.js`](dist/engine.js) | The game’s rules, state machine, and word pools. |
 | [`dist/app.js`](dist/app.js) | Screens, keyboard input, and the game loop. |
 | [`dist/style.css`](dist/style.css) | All that matte paper, sage, and clay. |
+| [`dist/viewport.css`](dist/viewport.css) · [`dist/viewport.js`](dist/viewport.js) | Compact layouts and viewport fitting, including mobile keyboard changes. |
 | [`dist/companion.js`](dist/companion.js) | Daven’s mouse-following curiosity. |
 | [`dist/audio.js`](dist/audio.js) · [`dist/damage.js`](dist/damage.js) | Music, sound cues, and the cracks in your comeback story. |
 | [`dist/sharing.js`](dist/sharing.js) | Score text, local PNG screenshots, and sharing controls. |
