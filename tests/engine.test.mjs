@@ -42,12 +42,12 @@ test('level score uses speed times accuracy times multiplier, plus only the come
  const{game,advance}=fixture();game.start();game.recall();advance(3000);game.submit(game.words.join(' '));
  const last=game.history.at(-1);assert.equal(last.accuracy,1);assert.equal(game.earned,Math.round(last.wpm*last.accuracy*game.multiplier));
 });
-test('a clean clear flashes for less than a second before the next level',()=>{
+test('a clean clear waits indefinitely for an explicit next action',()=>{
  const{game,advance}=fixture();game.start();game.recall();game.submit(game.words.join(' '));
- advance(CONFIG.passFlashMs-1);assert.equal(game.phase,'pass');advance(1);assert.equal(game.phase,'memorize');assert.equal(game.level,2);
+ advance(60000);assert.equal(game.phase,'pass');assert.equal(game.level,1);game.next();assert.equal(game.phase,'memorize');assert.equal(game.level,2);
 });
 
 test('opening help or hiding the tab during a clear cannot start a running level behind it',()=>{
  const{game,advance}=fixture();game.start();game.recall();game.submit(game.words.join(' '));advance(100);
- assert.equal(game.pause(),true);advance(5000);assert.equal(game.phase,'pass');game.resume();advance(CONFIG.passFlashMs-101);assert.equal(game.phase,'pass');advance(1);assert.equal(game.phase,'memorize');
+ assert.equal(game.pause(),true);advance(5000);game.next();assert.equal(game.phase,'pass');game.resume();advance(60000);assert.equal(game.phase,'pass');game.next();assert.equal(game.phase,'memorize');
 });

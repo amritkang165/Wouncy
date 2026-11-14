@@ -64,8 +64,8 @@ export class Game {
   this.beginMemorize();
 
  }
- next() { if(this.phase!=='pass')return;this.level++;this.newLevel(); }
- tick(){if(this.paused)return;if(this.phase==='pass'&&this.now()-this.resultAt>=CONFIG.passFlashMs){this.next();return;}if((this.phase==='memorize'||this.phase==='type')&&this.remaining<=0){if(this.phase==='memorize')this.recall();else this.fail('The clock got there first.');}}
+ next() { if(this.phase!=='pass'||this.paused)return;this.level++;this.newLevel(); }
+ tick(){if(this.paused)return;if((this.phase==='memorize'||this.phase==='type')&&this.remaining<=0){if(this.phase==='memorize')this.recall();else this.fail('The clock got there first.');}}
  pause(){if(!['memorize','type','pass'].includes(this.phase)||this.paused)return false;this.paused=true;this.pausedAt=this.now();return true;}
  resume(){if(!this.paused)return;const delta=this.now()-this.pausedAt;this.deadline+=delta;this.started+=delta;if(this.phase==='type')this.typingStarted+=delta;if(this.phase==='pass')this.resultAt+=delta;this.paused=false;}
  finish(){if(this.paused)this.resume();this.phase='summary';}
