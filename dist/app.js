@@ -60,9 +60,9 @@ function summary(){
 function render(force=false){
  if(!force&&drawnPhase===game.phase&&drawnPause===game.paused)return;
  const last=drawnPhase; drawnPhase=game.phase;drawnPause=game.paused;
- const damage=['menu','summary'].includes(game.phase)?0:Math.min(3,game.bounces);
+ const damage=['menu','summary'].includes(game.phase)?0:game.bounces;
  audioDirector.setScene({phase:game.phase,bounces:game.bounces||0,paused:game.paused});
- document.body.dataset.damage=damage;
+ document.body.dataset.damage=Math.min(3,damage);
  $('#screen-damage').innerHTML=screenCracks(damage);
  document.body.classList.toggle('impact',game.phase==='fail');
  app.innerHTML=game.phase==='menu'?menu():game.phase==='summary'?summary():gameScreen();

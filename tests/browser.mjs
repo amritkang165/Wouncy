@@ -124,6 +124,23 @@ assert.ok(sharedAfter<=sharedBefore && sharedBefore-sharedAfter<1,'scuffed recal
 await page.getByRole('button',{name:'Turn sound off'}).click();
 const mutedNotes=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);
 assert.equal(await page.evaluate(()=>window.noteStarts),mutedNotes,'muted audio must stop scheduling notes');
+// Every later bounce adds visible screen damage; the overlay never blocks input.
+let previousCracks=await page.locator('.screen-cracks path').count();
+for(let bounce=4;bounce<=6;bounce++){
+ await page.locator('#word-input').fill('wrong');await page.keyboard.press('Enter');
+ await page.locator('#retry-button').waitFor();
+ const count=await page.locator('.screen-cracks path').count();
+ assert.ok(count>previousCracks,`bounce ${bounce} must add visible cracks`);previousCracks=count;
+ assert.equal(await page.locator('.screen-cracks').getAttribute('data-bounces'),String(bounce));
+ assert.equal(await page.locator('body').getAttribute('data-damage'),'3','desaturation must persist beyond bounce three');
+ await page.locator('#retry-button').click();
+ if(bounce===6){
+  await page.waitForTimeout(100);await page.screenshot({path:'artifacts/cracks-bounce-6-desktop.png'});
+  await page.setViewportSize({width:390,height:844});await page.waitForTimeout(100);
+  await page.screenshot({path:'artifacts/cracks-bounce-6-mobile.png'});
+ }
+ await page.locator('#ready-button').click();
+}
 assert.deepEqual(errors,[]);
 console.log('Browser checks passed: full game loop, retries, comeback bonus, pause, instructions, saved best, sound, and responsive layouts.');
 await browser.close();
