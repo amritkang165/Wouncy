@@ -4,13 +4,16 @@ import { ArcadeAudio } from './audio.js';
 import { mountCompanion } from './companion.js';
 import { shareControls, mountSharing } from './sharing.js';
 import { createViewportFitter } from './viewport.js';
+import { mountMovingWords } from './movement.js';
 const $ = (selector) => document.querySelector(selector);
 const app = $('#app');
 const game = new Game();
 const help = $('#help-dialog');
 const fitScreen=createViewportFitter(app,help);
 let drawnPhase = '', drawnPause = false, fieldValue = '', frame = 0, returnFocus = null, helpPaused = false;
-let disposeCompanion=()=>{},disposeSharing=()=>{};
+let disposeCompanion=()=>{},disposeSharing=()=>{},disposeMovement=()=>{};
+let movingWords=true,movementPositions=[];
+try{movingWords=localStorage.getItem('wouncy-moving-words')!=='false';}catch{}
 let best = 0;
 try { best = Number(localStorage.getItem('bounce-back-best-v2')) || 0; } catch {}
 let soundOn = true;
@@ -34,7 +37,7 @@ function aside(message,action) { return `<div class="daven-aside">${mascot(actio
 function personalBest(extra='',record=false){return `<div class="personal-best ${extra} ${record?'is-record':''}" aria-label="Personal best: ${best.toLocaleString()} points"><span class="best-badge-star" aria-hidden="true">★</span><span><small>${record?'new personal best':'personal best'}</small><strong>${best.toLocaleString()}<span> pts</span></strong></span></div>`;}
 function menu() {
  return `<section class="menu" aria-label="Welcome to Wouncy">
-  <div class="menu-banner"><span class="little-label"><span class="label-flower" aria-hidden="true">✳</span> a memory typing arcade</span><span class="menu-note">a little wobbly. always bouncy. <span aria-hidden="true">↙</span></span></div>
+  <div class="menu-banner"><span class="little-label"><span class="label-flower" aria-hidden="true">✳</span> a memory typing arcade</span><label class="motion-option"><input id="moving-words" type="checkbox" ${movingWords?'checked':''}><span>moving words<small>from level 4 · respects reduced motion</small></span></label></div>
   <div class="hero"><div class="hero-copy">
    <h1 class="title wouncy-title" aria-label="Wouncy"><span>w<span class="wouncy-o">o</span>uncy</span><span class="wordmark-flower" aria-hidden="true">✳</span></h1>
    <p class="tagline">Give your brain <strong>a little bounce.</strong></p><p class="landing-description">Remember a few words. Type them back.<br>Three bounces. Make your comeback count.</p>
@@ -66,7 +69,7 @@ function gameScreen() {
  const phase=game.phase;
  let content='',message='';
  if(phase==='memorize') {
-  content=`<div class="phase-label"><span class="step-dot"></span>01 / take a little look</div><h1 class="game-title">A little room in your brain.</h1><p class="game-description">Remember these ${game.words.length} words. Any order works.</p>${timer()}<div class="word-field ${game.level>=4?'drifting':''}">${game.words.map((w,i)=>`<div class="word-card ${w===game.specialWord?'special-word':''}" data-word="${w}" style="--i:${i}"><span class="word-order" aria-hidden="true">${w===game.specialWord?'★':'•'}</span>${w}${w===game.specialWord?'<span class="word-bonus">★ +50 if first</span>':''}</div>`).join('')}</div><button class="secondary-button" id="ready-button">okay, I’ve got them <span aria-hidden="true">↵</span></button><div class="board-hint">★ Type the highlighted word first for +${CONFIG.firstWordBonus} points.${game.bounces?' Same words, another chance.':''}</div>`;
+  content=`<div class="phase-label"><span class="step-dot"></span>01 / ${movingWords&&game.settings.movementSpeed?'words on the move':'take a little look'}</div><h1 class="game-title">A little room in your brain.</h1><p class="game-description">Remember these ${game.words.length} words. Any order works.</p>${timer()}<div class="word-field ${movingWords&&game.settings.movementSpeed?'moving-words':''}">${game.words.map((w,i)=>`<div class="word-cell"><div class="word-card ${w===game.specialWord?'special-word':''}" data-word="${w}" style="--i:${i}"><span class="word-order" aria-hidden="true">${w===game.specialWord?'★':'•'}</span>${w}${w===game.specialWord?'<span class="word-bonus">★ +50 if first</span>':''}</div></div>`).join('')}</div><button class="secondary-button" id="ready-button">okay, I’ve got them <span aria-hidden="true">↵</span></button><div class="board-hint">★ Type the highlighted word first for +${CONFIG.firstWordBonus} points.${game.bounces?' Same words, another chance.':''}</div>`;
   message=game.bounces===0?'Just a few words. What could possibly go wrong?':game.bounces===1?'A fresh start. Same words. You know the drill.':game.bounces===2?'Okay, this is officially a comeback story.':'Still here? I like your spirit. Watch that clock!';
  } else if(phase==='type') {
   content=`<div class="phase-label"><span class="step-dot"></span>02 / over to you</div><h1 class="game-title">Out of sight. Still in mind?</h1><p class="game-description">Type any remembered word. Space or Enter locks each one.</p>${timer()}<div class="recall-slots" id="recall-slots">${slots()}</div><form class="input-wrap" id="word-form"><label class="sr-only" for="word-input">Type a remembered word</label><input id="word-input" class="word-input" type="text" placeholder="any word goes here…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="type-hint" maxlength="160"><button class="submit-button" type="submit" aria-label="Submit word">↵</button></form><div class="board-hint" id="type-hint"><span id="word-progress">${game.index}</span> of ${game.words.length} words locked · any order<span id="bonus-progress">${game.wordBonus?' · ★ +'+game.wordBonus+' on clear':''}</span></div>`;
@@ -98,11 +101,13 @@ function render(force=false){
  document.body.dataset.phase=game.phase;
  $('#screen-damage').innerHTML=screenCracks(damage);
  document.body.classList.toggle('impact',game.phase==='fail'||(game.phase==='summary'&&game.gameOver));
- disposeCompanion();disposeCompanion=()=>{};disposeSharing();disposeSharing=()=>{};
+ disposeCompanion();disposeCompanion=()=>{};disposeSharing();disposeSharing=()=>{};disposeMovement();disposeMovement=()=>{};
  app.innerHTML='<div class="viewport-content">'+(game.phase==='menu'?menu():game.phase==='summary'?summary():gameScreen())+'</div>';
  fitScreen(app.firstElementChild);
  if(game.phase==='summary'&&game.gameOver)disposeSharing=mountSharing($('.summary'),{score:game.score,level:game.level,cleared:game.history.length});
  if(game.phase==='menu')disposeCompanion=mountCompanion($('.menu'));
+ if(game.phase==='memorize'&&movingWords&&game.settings.movementSpeed)disposeMovement=mountMovingWords($('.word-field'),{speed:game.settings.movementSpeed,paused:game.paused,positions:movementPositions});
+ $('#moving-words')?.addEventListener('change',event=>{movingWords=event.target.checked;try{localStorage.setItem('wouncy-moving-words',String(movingWords));}catch{}});
  if(game.phase==='type'&&!game.paused){const input=$('#word-input');input.value=fieldValue;input.focus({preventScroll:true});}
  if(game.paused&&!help.open)$('#resume-button')?.focus({preventScroll:true});
  $('#start-button')?.addEventListener('click',start);
@@ -126,10 +131,10 @@ function render(force=false){
  }
  updateTimer();
 }
-function start(){audioDirector.enable(soundOn);fieldValue='';game.start();render();playSound('start');}
+function start(){audioDirector.enable(soundOn);movementPositions=[];fieldValue='';game.start();render();playSound('start');}
 function recall(){game.recall();fieldValue='';render();}
-function retry(){fieldValue='';game.retry();render();playSound('retry');}
-function next(){fieldValue='';game.next();render();playSound('start');}
+function retry(){movementPositions=[];fieldValue='';game.retry();render();playSound('retry');}
+function next(){movementPositions=[];fieldValue='';game.next();render();playSound('start');}
 function submit(){
  if(game.phase!=='type'||game.paused)return;
  const input=$('#word-input');const value=input.value;if(!value.trim())return;

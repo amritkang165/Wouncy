@@ -44,6 +44,7 @@ Type them back **in any order**. Miss one? Wouncy gives you a little breathing r
 | 🌱 **look** | Remember the words before the timer empties. You start with 15 seconds. |
 | ⌨️ **type** | Enter each word once, in any order. Space or Enter locks it in. |
 | ⭐ **a tiny extra** | Type the highlighted ★ word first for **+50 points** when you clear the level. |
+| 🍃 **a little movement** | From level **4**, words bounce gently while you memorize; movement gets quicker every two levels, up to a cap. Turn **moving words** off on the home screen, or use your device’s reduced-motion setting. |
 | ✨ **keep climbing** | Longer lists, trickier words, less time. Clean clears grow your multiplier up to **3×**. |
 | ↶ **bounce back** | The same words return. The first miss adds **5 seconds**; the second adds **3**. |
 | 🍂 **three’s the limit** | Your **third miss ends the run**. Bounces carry across levels. A fresh run starts fresh. |
