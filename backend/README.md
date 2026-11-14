@@ -12,9 +12,17 @@ npm run dev:backend
 `GET /health` reports the shared rules version. `POST /rooms` returns a six-character
 room code. Two clients can connect to `/rooms/CODE/ws`, receive presence updates,
 and submit `{ "type": "ready", "ready": true }`. Connections and rooms are bounded;
-the Worker checks browser origins and rate-limits requests. This transport alone
-does not yet run matches or accept leaderboard scores.
+the Worker checks browser origins and rate-limits requests.
+
+Guest sessions use hashed bearer tokens (no third-party cookies). `/runs` creates
+server-owned solo or daily runs; sequenced actions are checked and scored by the
+shared rules. Only finalized server runs write to D1. `/leaderboard` shows each
+guest's best run for the current rules, or today's UTC daily challenge.
+This prevents invented score submissions, but browser memory games cannot prevent
+players inspecting words or automating input. Guest names are public and unverified.
 
 Deployment requires authorization of the official Wrangler CLI in the intended
 Cloudflare account, followed by `npm run deploy:backend`. Keep tokens out of Git
-and the game ZIP. The production API URL will be configured when online UI is ready.
+and the game ZIP. Before deployment, apply the checked-in schema with
+`npx wrangler d1 migrations apply wouncy-scores --remote --config backend/wrangler.jsonc`.
+The static client's API URL is configured in `dist/online.js`.

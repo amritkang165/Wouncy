@@ -9,8 +9,10 @@
   "durable_objects": {
     "bindings": [
       {"name":"ROOMS","class_name":"WouncyRoom"},
-      {"name":"LIMITS","class_name":"RequestLimits"}
+      {"name":"LIMITS","class_name":"RequestLimits"},
+      {"name":"RUNS","class_name":"WouncyRun"}
     ]
   },
-  "migrations": [{"tag":"v1","new_sqlite_classes":["WouncyRoom","RequestLimits"]}]
+  "migrations": [{"tag":"v1","new_sqlite_classes":["WouncyRoom","RequestLimits"]},{"tag":"v2","new_sqlite_classes":["WouncyRun"]}],
+  "d1_databases": [{"binding":"DB","database_name":"wouncy-scores","database_id":"55641999-4b36-41d2-8fb6-09be4eabda6a","migrations_dir":"migrations"}]
 }
