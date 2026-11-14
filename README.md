@@ -18,7 +18,7 @@ Open http://localhost:4173. The deployable game is entirely inside `dist/` and w
 
 - Enter starts a run and moves from memorizing to recall.
 - Type a word and press Space or Enter to lock it in.
-- The first bounce adds 5 seconds of memorization; the second adds 3. From the third bounce onward, no time is added: one shared clock covers memorization and typing. Looking uses up typing time, and hiding the words does not reset the timer. There is no speed multiplier.
+- The run has a total limit of three bounces. The first miss adds 5 seconds of memorization for a retry, and the second adds 3. The third miss ends the run immediately with a game-over summary. Bounces carry across cleared levels; a new run resets them.
 - Level score is typing speed (WPM) × accuracy (0–1) × streak multiplier. Clean clears raise the multiplier by 0.5×, up to 3×. Clears after 2+ bounces add 100 points per bounce. Clears automatically advance after an 850 ms celebration.
 - Escape pauses. Leaving the tab or opening instructions automatically pauses an active timer.
 - Finish run shows your score, levels, bounces, comeback, and per-level results. Your best score saves in this browser when storage is available.
@@ -48,7 +48,7 @@ Browser verification uses Playwright with an installed Google Chrome, or a Playw
 
 The game is independently made and is not an official Hack Club product.
 
-The PRD's Python/Pygame distribution was adapted to a browser game at the user's request. The primary Continuous Climb mode is implemented; optional fixed rounds and hard mode are outside this first version.
+The PRD's Python/Pygame distribution was adapted to a browser game at the user's request. The primary Continuous Climb mode is implemented; optional fixed rounds are outside this version. The user-requested three-bounce run limit replaces the PRD’s unlimited/scuffed retries.
 
 ## Contribution workflow
 
@@ -58,4 +58,4 @@ The failure chant is bundled as a short PCM recording synthesized with the macOS
 
 Scoring now follows the PRD formula. Personal bests use a new storage key so the prototype’s old word-count bonuses do not inflate the leaderboard.
 
-On scuffed bounces, the retained memorization allowance becomes one shared attempt budget. This resolves the PRD’s “timer drains while words are still shown” rule: looking consumes time available for recall, with no refill or speed multiplier.
+Game over preserves your score and saves a new personal best automatically. The summary provides a restart button; there is no third retry or scuffed-bounce continuation.

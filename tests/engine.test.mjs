@@ -4,7 +4,7 @@ import {Game,difficulty,CONFIG} from '../dist/engine.js';
 function fixture(){let time=0;const game=new Game({now:()=>time,random:()=>.2});return{game,advance:(ms)=>{time+=ms;game.tick();}};}
 test('memorize expires into recall without changing the sequence',()=>{const{game,advance}=fixture();game.start();const words=[...game.words];assert.equal(game.words.length,3);advance(15001);assert.equal(game.phase,'type');assert.deepEqual(game.words,words);assert.equal(game.remaining,21);});
 test('clean clear locks words, scores points, increases multiplier and advances',()=>{const{game,advance}=fixture();game.start();game.recall();advance(3000);game.submit(game.words[0].toUpperCase());assert.equal(game.index,1);game.submit(game.words.slice(1).join('  '));assert.equal(game.phase,'pass');assert.equal(game.multiplier,1.5);assert.ok(game.score>0);assert.equal(game.history.length,1);game.next();assert.equal(game.level,2);assert.equal(game.duration,13);assert.equal(game.phase,'memorize');});
-test('retries preserve words and add 5s, 3s, then no added time at normal clock speed',()=>{const{game,advance}=fixture();game.start();const words=[...game.words];for(const[retry,duration]of[[1,20],[2,23],[3,23]]){game.recall();game.submit('nope');assert.equal(game.phase,'fail');assert.equal(game.totalBounces,retry);game.retry();assert.deepEqual(game.words,words);assert.equal(game.duration,duration);assert.equal(game.remaining,duration);}advance(1000);assert.equal(game.remaining,22);});
+test('the first two retries preserve words and add 5s then 3s',()=>{const{game,advance}=fixture();game.start();const words=[...game.words];for(const[retry,duration]of[[1,20],[2,23]]){game.recall();game.submit('nope');assert.equal(game.phase,'fail');assert.equal(game.totalBounces,retry);game.retry();assert.deepEqual(game.words,words);assert.equal(game.duration,duration);assert.equal(game.remaining,duration);}advance(1000);assert.equal(game.remaining,22);});
 test('typing timeout bounces; a comeback clear adds the comeback bonus',()=>{const{game,advance}=fixture();game.start();game.recall();advance(22000);assert.equal(game.phase,'fail');game.retry();game.recall();game.submit('wrong');game.retry();game.recall();advance(5000);game.submit(game.words.join(' '));assert.equal(game.bestComeback,2);assert.equal(game.history[0].comeback,200);assert.equal(game.multiplier,1);});
 test('pause freezes timers and excludes paused time from typing speed',()=>{const{game,advance}=fixture();game.start();game.recall();advance(2000);const remaining=game.remaining;game.pause();advance(60000);assert.equal(game.remaining,remaining);assert.equal(game.phase,'type');game.resume();assert.equal(game.remaining,remaining);advance(1000);game.submit(game.words.join(' '));const expected=Math.min(180,Math.round(game.words.join('').length/5/(3/60)));assert.equal(game.history[0].wpm,expected);});
 test('difficulty caps and multiplier cap keep continuous climb playable',()=>{assert.equal(difficulty(1000).count,8);assert.equal(difficulty(1000).memorize,4);const{game}=fixture();game.start();for(let i=0;i<10;i++){game.recall();game.submit(game.words.join(' '));game.next();}assert.equal(game.multiplier,CONFIG.maxMultiplier);assert.equal(game.level,11);});
@@ -12,20 +12,30 @@ test('blank submission does nothing and late correct answer still fails',()=>{co
 test('finish freezes the run at summary; restart resets stats',()=>{const{game}=fixture();game.start();game.recall();game.submit('wrong');game.finish();assert.equal(game.phase,'summary');game.start();assert.equal(game.score,0);assert.equal(game.totalBounces,0);assert.equal(game.level,1);assert.deepEqual(game.history,[]);});
 test('extra words cannot be used to bypass exact sequence matching',()=>{const{game}=fixture();game.start();game.recall();game.submit(game.words.join(' ')+' extra');assert.equal(game.phase,'fail');assert.equal(game.score,0);});
 
-function reachScuffed(game){game.start();for(let i=0;i<3;i++){game.recall();game.submit('wrong');game.retry();}}
-test('third and later bounces share a deadline across looking and typing',()=>{
- const{game,advance}=fixture();reachScuffed(game);assert.equal(game.scuffed,true);
- const words=[...game.words];const deadline=game.deadline;
- advance(7000);assert.equal(game.remaining,16);game.recall();assert.equal(game.remaining,16);assert.equal(game.deadline,deadline);
- game.submit('wrong');game.retry();assert.equal(game.duration,23);assert.deepEqual(game.words,words);assert.equal(game.scuffed,true);
- advance(5000);game.recall();assert.equal(game.remaining,18);
+test('the third miss ends the run and cannot be retried or counted twice',()=>{
+ const{game,advance}=fixture();game.start();
+ for(let i=1;i<=3;i++){
+  game.recall();game.submit('wrong');assert.equal(game.totalBounces,i);
+  if(i<3){assert.equal(game.phase,'fail');game.retry();}else{assert.equal(game.phase,'summary');assert.equal(game.gameOver,true);}
+ }
+ const score=game.score;game.retry();game.next();game.fail('again');advance(60000);
+ assert.equal(game.phase,'summary');assert.equal(game.totalBounces,3);assert.equal(game.score,score);
 });
-test('a scuffed clock can expire while words are still shown',()=>{
- const{game,advance}=fixture();reachScuffed(game);advance(23001);assert.equal(game.phase,'fail');assert.equal(game.bounces,4);
+test('a third typing timeout also ends the run',()=>{
+ const{game,advance}=fixture();game.start();
+ for(let i=0;i<3;i++){game.recall();advance(game.duration*1000+1);if(i<2)game.retry();}
+ assert.equal(game.phase,'summary');assert.equal(game.gameOver,true);assert.equal(game.totalBounces,CONFIG.bounceLimit);
 });
-test('pause preserves shared scuffed time; a new level resets scuffed state',()=>{
- const{game,advance}=fixture();reachScuffed(game);advance(3000);game.pause();advance(40000);assert.equal(game.remaining,20);game.resume();
- game.recall();assert.equal(game.remaining,20);game.submit(game.words.join(' '));game.next();assert.equal(game.scuffed,false);assert.equal(game.bounces,0);assert.equal(game.bonusTime,0);
+test('the three-bounce budget and retry bonuses carry across cleared levels',()=>{
+ const{game}=fixture();game.start();game.recall();game.submit('wrong');game.retry();game.recall();game.submit(game.words.join(' '));game.next();
+ assert.equal(game.totalBounces,1);assert.equal(game.bounces,0);
+ game.recall();game.submit('wrong');game.retry();assert.equal(game.bonusTime,3);
+ game.recall();game.submit('wrong');assert.equal(game.phase,'summary');assert.equal(game.totalBounces,3);assert.equal(game.history.length,1);assert.ok(game.score>0);
+});
+test('a fresh run resets game over, score, and the full three-bounce budget',()=>{
+ const{game}=fixture();game.start();
+ for(let i=0;i<3;i++){game.recall();game.submit('wrong');if(i<2)game.retry();}
+ game.start();assert.equal(game.gameOver,false);assert.equal(game.totalBounces,0);assert.equal(game.phase,'memorize');assert.equal(game.score,0);assert.equal(game.bonusTime,0);
 });
 
 test('level score uses speed times accuracy times multiplier, plus only the comeback bonus',()=>{

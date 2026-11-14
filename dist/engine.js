@@ -7,14 +7,13 @@ export const WORDS = {
 };
 export class Game {
  constructor({random=Math.random,now=()=>performance.now()}={}) { this.random=random; this.now=now; this.phase='menu'; this.paused=false; }
- start() { Object.assign(this,{level:1,score:0,streak:0,multiplier:1,totalBounces:0,bestComeback:0,history:[],paused:false}); this.newLevel(); }
+ start() { Object.assign(this,{level:1,score:0,streak:0,multiplier:1,totalBounces:0,bestComeback:0,history:[],paused:false,gameOver:false}); this.newLevel(); }
  newLevel() {
   const d=difficulty(this.level); this.settings=d; this.bounces=0; this.bonusTime=0;
   const pool=[...new Set(WORDS[d.pool])]; this.words=[];
   for(let i=0;i<d.count;i++) this.words.push(pool.splice(Math.floor(this.random()*pool.length),1)[0]);
   this.beginMemorize();
  }
- get scuffed() { return this.bounces >= CONFIG.scuffedFrom; }
  beginMemorize() {
   this.phase='memorize'; this.index=0; this.locked=[];
   this.duration=this.settings.memorize+this.bonusTime;
@@ -25,10 +24,8 @@ export class Game {
  get fraction() { return Math.min(1,this.remaining/this.duration); }
  recall() {
   if(this.phase!=='memorize'||this.paused)return;
-  if(this.scuffed && this.remaining<=0){this.fail('The shared clock ran out while you were looking.');return;}
   this.phase='type';
-  // A scuffed bounce shares one deadline across looking and typing. Never refill it.
-  if(!this.scuffed){this.duration=this.settings.typeTime;this.started=this.now();this.deadline=this.started+this.duration*1000;}
+  this.duration=this.settings.typeTime;this.started=this.now();this.deadline=this.started+this.duration*1000;
   this.typingStarted=this.now();
  }
  submit(value) {
@@ -55,15 +52,20 @@ export class Game {
   this.history.push({level:this.level,bounces:this.bounces,points:this.earned,wpm,accuracy,comeback});
   this.phase='pass'; this.resultAt=this.now();
  }
- fail(reason) { this.phase='fail';this.reason=reason;this.bounces++;this.totalBounces++;this.streak=0;this.multiplier=1;this.resultAt=this.now(); }
+ fail(reason) {
+  if(!['memorize','type'].includes(this.phase)||this.paused)return;
+  this.reason=reason;this.bounces++;this.totalBounces++;this.streak=0;this.multiplier=1;this.resultAt=this.now();
+  this.gameOver=this.totalBounces>=CONFIG.bounceLimit;
+  this.phase=this.gameOver?'summary':'fail';
+ }
  retry() {
   if(this.phase!=='fail')return;
-  this.bonusTime+=CONFIG.bounceBonuses[Math.min(this.bounces-1,2)];
+  this.bonusTime+=CONFIG.bounceBonuses[this.totalBounces-1];
   this.beginMemorize();
 
  }
  next() { if(this.phase!=='pass')return;this.level++;this.newLevel(); }
- tick(){if(this.paused)return;if(this.phase==='pass'&&this.now()-this.resultAt>=CONFIG.passFlashMs){this.next();return;}if((this.phase==='memorize'||this.phase==='type')&&this.remaining<=0){if(this.phase==='memorize'&&!this.scuffed)this.recall();else this.fail('The clock got there first.');}}
+ tick(){if(this.paused)return;if(this.phase==='pass'&&this.now()-this.resultAt>=CONFIG.passFlashMs){this.next();return;}if((this.phase==='memorize'||this.phase==='type')&&this.remaining<=0){if(this.phase==='memorize')this.recall();else this.fail('The clock got there first.');}}
  pause(){if(!['memorize','type','pass'].includes(this.phase)||this.paused)return false;this.paused=true;this.pausedAt=this.now();return true;}
  resume(){if(!this.paused)return;const delta=this.now()-this.pausedAt;this.deadline+=delta;this.started+=delta;if(this.phase==='type')this.typingStarted+=delta;if(this.phase==='pass')this.resultAt+=delta;this.paused=false;}
  finish(){if(this.paused)this.resume();this.phase='summary';}

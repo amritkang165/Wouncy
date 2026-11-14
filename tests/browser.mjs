@@ -96,56 +96,52 @@ for(const size of [{width:390,height:844},{width:360,height:740},{width:768,heig
  await page.waitForTimeout(100);await page.screenshot({path:`artifacts/recall-${size.width}.png`});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
 }
-// The third retry spends typing time while words are visible, without a refill.
-await page.setViewportSize({width:1280,height:800});await page.goto(baseURL);
+// A total of three bounces ends the run, saves the score, and offers only a fresh start.
+await page.setViewportSize({width:1280,height:800});
+await page.evaluate(()=>localStorage.removeItem('bounce-back-best-v2'));await page.goto(baseURL);
 await page.locator('#start-button').click();
+const firstWords=await page.locator('.word-card').evaluateAll(es=>es.map(e=>e.childNodes[1].textContent));
+await page.locator('#ready-button').click();await page.locator('#word-input').fill(firstWords.join(' '));await page.keyboard.press('Enter');
+await page.locator('#next-button').click();
+let previousCracks=0;
 for(let bounce=1;bounce<=3;bounce++){
  await page.locator('#ready-button').click();await page.locator('#word-input').fill('wrong');await page.keyboard.press('Enter');
- await page.locator('#retry-button').waitFor();
  await page.waitForFunction(n=>window.chants.length>=n,bounce);
- if(bounce===3)assert.match(await page.locator('.bounce-note').innerText(),/SCUFFED BOUNCE.*\+0 seconds/);
- await page.locator('#retry-button').click();
-}
-assert.match(await page.locator('.board-hint').innerText(),/looking uses your typing time/);
-assert.equal(await page.locator('body').getAttribute('data-damage'),'3');
-assert.match(await page.locator('.bounce-tier.current').innerText(),/SCUFFED/);
-await page.waitForFunction(()=>window.chants.length>=3);
-const chants=await page.evaluate(()=>window.chants);
-assert.ok(chants[0].rate>chants[1].rate&&chants[1].rate>chants[2].rate);
-assert.ok(chants.every(c=>c.duration/c.rate<.5));
-const fractures=await page.locator('#screen-damage').innerHTML();
-await page.locator('#pause-button').click();assert.equal(await page.locator('#screen-damage').innerHTML(),fractures);
-assert.equal(await page.evaluate(()=>window.activeLoops.size),0,'pause must stop the continuous music source');
-const notesAtPause=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);
-assert.equal(await page.evaluate(()=>window.noteStarts),notesAtPause,'paused music must stop scheduling notes');
-await page.locator('#resume-button').click();
-await page.waitForTimeout(100);await page.screenshot({path:'artifacts/scuffed-desktop.png'});
-await page.waitForTimeout(400);
-const sharedBefore=Number.parseFloat(await page.locator('#timer-number').innerText());
-await page.locator('#ready-button').click();await page.waitForTimeout(70);
-const sharedAfter=Number.parseFloat(await page.locator('#timer-number').innerText());
-assert.ok(sharedAfter<=sharedBefore && sharedBefore-sharedAfter<1,'scuffed recall must retain the shared deadline');
-await page.getByRole('button',{name:'Turn sound off'}).click();
-assert.equal(await page.evaluate(()=>window.activeLoops.size),0,'mute must stop the continuous music source');
-const mutedNotes=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);
-assert.equal(await page.evaluate(()=>window.noteStarts),mutedNotes,'muted audio must stop scheduling notes');
-// Every later bounce adds visible screen damage; the overlay never blocks input.
-let previousCracks=await page.locator('.screen-cracks path').count();
-for(let bounce=4;bounce<=6;bounce++){
- await page.locator('#word-input').fill('wrong');await page.keyboard.press('Enter');
- await page.locator('#retry-button').waitFor();
- const count=await page.locator('.screen-cracks path').count();
- assert.ok(count>previousCracks,`bounce ${bounce} must add visible cracks`);previousCracks=count;
+ const count=await page.locator('.screen-cracks path').count();assert.ok(count>previousCracks);previousCracks=count;
  assert.equal(await page.locator('.screen-cracks').getAttribute('data-bounces'),String(bounce));
- assert.equal(await page.locator('body').getAttribute('data-damage'),'3','desaturation must persist beyond bounce three');
- await page.locator('#retry-button').click();
- if(bounce===6){
-  await page.waitForTimeout(100);await page.screenshot({path:'artifacts/cracks-bounce-6-desktop.png'});
-  await page.setViewportSize({width:390,height:844});await page.waitForTimeout(100);
-  await page.screenshot({path:'artifacts/cracks-bounce-6-mobile.png'});
+ if(bounce<3){
+  await page.locator('#retry-button').waitFor();
+  assert.match(await page.locator('.bounce-note').innerText(),new RegExp(`${3-bounce} bounce`));
+  await page.locator('#retry-button').click();
+  if(bounce===2){
+   const fractures=await page.locator('#screen-damage').innerHTML();
+   await page.locator('#pause-button').click();assert.equal(await page.locator('#screen-damage').innerHTML(),fractures);
+   assert.equal(await page.evaluate(()=>window.activeLoops.size),0,'pause must stop continuous music');
+   const notesAtPause=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);
+   assert.equal(await page.evaluate(()=>window.noteStarts),notesAtPause,'paused music must stop scheduling notes');
+   await page.locator('#resume-button').click();
+  }
  }
- await page.locator('#ready-button').click();
 }
+await page.getByRole('heading',{name:'GAME OVER.'}).waitFor();
+assert.equal(await page.locator('#retry-button').count(),0);assert.equal(await page.locator('#word-input').count(),0);
+assert.equal(await page.locator('.summary-stats strong').nth(1).innerText(),'3');
+assert.equal(await page.locator('.summary-stats strong').first().innerText(),'1');
+const score=Number((await page.locator('.summary-score').innerText()).replaceAll(',',''));
+assert.ok(score>0);assert.equal(await page.evaluate(()=>Number(localStorage.getItem('bounce-back-best-v2'))),score);
+const chants=await page.evaluate(()=>window.chants);
+assert.ok(chants[0].rate>chants[1].rate&&chants[1].rate>chants[2].rate);assert.ok(chants.every(c=>c.duration/c.rate<.5));
+const notesAtGameOver=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(600);
+assert.equal(await page.evaluate(()=>window.noteStarts),notesAtGameOver,'game-over audio must not repeatedly restart');
+await page.screenshot({path:'artifacts/game-over-desktop.png'});
+await page.setViewportSize({width:390,height:844});await page.waitForTimeout(100);await page.screenshot({path:'artifacts/game-over-mobile.png'});
+assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+await page.getByRole('button',{name:'another round?'}).click();
+assert.equal(await page.locator('.stat-value').last().innerText(),'0 / 3');assert.equal(await page.locator('.screen-cracks').count(),0);
+assert.equal(await page.locator('.stat-value').nth(1).innerText(),'0');await page.locator('#ready-button').waitFor();
+await page.getByRole('button',{name:'Turn sound off'}).click();
+assert.equal(await page.evaluate(()=>window.activeLoops.size),0,'mute must stop continuous music');
+const mutedNotes=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>window.noteStarts),mutedNotes);
 assert.deepEqual(errors,[]);
-console.log('Browser checks passed: full game loop, retries, comeback bonus, pause, instructions, saved best, sound, and responsive layouts.');
+console.log('Browser checks passed: full game loop, three-bounce game over, score persistence, restart, cracks, audio, pause, and responsive layouts.');
 await browser.close();
