@@ -1,23 +1,41 @@
 import {CONFIG,difficulty} from './config.js';
+import {RULES_VERSION,newSeed,seededRandom} from './rules.js';
 export {CONFIG,difficulty} from './config.js';
+export {RULES_VERSION} from './rules.js';
+const RUN_FIELDS='rulesVersion seed mode level score streak multiplier totalBounces livesRemaining bestComeback history paused gameOver settings bounces bonusTime words specialWord phase index locked wordBonus duration started deadline typingStarted pausedAt earned resultAt reason'.split(' ');
 export const WORDS = {
  easy:'sun moss leaf pond frog fern moon star seed rain bird nest twig fish cloud peach apple clover honey acorn berry creek bloom petal snail river maple grass stone sprout dream cozy warm glow soft happy tiny home jump bounce green orange yellow garden daisy tulip robin wren plum pear cherry hazel pine mint sage root bark wood tree rose lily hill lake brook camp tent kite wind wave sand shell beach coral whale otter fox bear deer hare mouse mole duck swan dove owl goat sheep lamb calf horse pony sheepdog cat dog bee moth wing ant bug worm beetle log path trail boot sock hat coat scarf mitt cake bread toast jam pie milk tea cup mug pot pan bowl spoon fork book page pen ink note song tune bell drum hum smile laugh wish hope hug nap rest dawn dusk day night light dark blue pink gold red brown snow frost ice dew drop pool splash hop skip roll run walk step climb sit sleep wake play game friend heart luck charm spark blush brush crunch crisp fluff puff fluffball nut bun fig melon grape lemon lime mango apricot oat wheat corn rice bean pea'.split(' '),
  medium:'meadow mushroom sunshine autumn firefly picnic flutter adventure whisper forest blanket pumpkin blossom squirrel rainbow sparkle daydream campfire waterfall lantern wildflower cinnamon chestnut hillside raindrop feather butterfly hummingbird evergreen marigold woodland starlight moonbeam sunrise sunset pebble skipping jumping bouncing wander wonder gentle giggle wobble tumble twinkle ribbon pocket doodle puddle breezy sleepy curious playful cheerful hopeful fearless little golden silver cloudy sunny morning evening midnight afternoon breakfast backpack notebook teacup cookie cupcake pancake waffles cocoa honeycomb blueberry strawberry raspberry gooseberry cranberry orchard harvest hedgehog sparrow swallow dragonfly ladybird grasshopper caterpillar turtle rabbit badger beaver raccoon chipmunk porcupine cricket cicada tadpole ladybug maplewood driftwood snowdrop bluebell foxglove dandelion lavender rosemary sunflower magnolia jasmine gardenia petunia begonia anemone buttercup snowflake snowball snowman rainbow acorncap treasure journey compass footsteps treehouse hammock laughter kindness patience courage memory remember forget return again'.split(' '),
  hard:'resilience kaleidoscope chrysanthemum serendipity perseverance extraordinary constellation phosphorescent bittersweet effervescent unforgettable misadventure imagination metamorphosis magnificent rambunctious tranquil curiosity possibility indestructible adventurous spectacular whimsical wonderstruck fluorescent luminescence bioluminescent incandescent iridescent quintessential extraordinary spontaneous exuberance rejuvenation rejuvenate opportunity determination accomplishment anticipation celebration appreciation consideration concentration contemplation coordination collaboration companionship compassion conscientious consciousness creativity confidence continuity conversation curiosity delightful dependable destination development difference discovery encouragement enthusiastic environmental equilibrium exceptional experience exploration fascination flourishing forgiveness friendship generosity gratitude harmonious happiness heartwarming hibernation imagination independent inspiration intentional intermission introspection invincible juxtaposition knowledgeable lighthearted mischievous moonlighting mysterious naturalistic neighborhood nevertheless omnipotent optimistic overjoyed overwhelming particularly peppermint perspective picturesque playground pomegranate precipitation progressively punctuation radiantly reconciliation recollection reflection rejuvenating remarkable remembrance resourceful restorative resurrection reverberation revolutionary ridiculous scintillating shimmering silhouetted simultaneous spellbinding storytelling strengthened subconscious sunshine surprising sustainable symmetrical tangerine tenderness thunderstorm togetherness transformation translucent unbelievable unpredictable untamable wholehearted wilderness wonderful'.split(' ')
 };
 export class Game {
- constructor({random=Math.random,now=()=>performance.now()}={}) { this.random=random; this.now=now; this.phase='menu'; this.paused=false; }
- start() { Object.assign(this,{level:1,score:0,streak:0,multiplier:1,totalBounces:0,bestComeback:0,history:[],paused:false,gameOver:false}); this.newLevel(); }
+ constructor({random,now=()=>performance.now()}={}) { this.randomOverride=random; this.now=now; this.phase='menu'; this.paused=false; }
+ start({seed=newSeed(),mode='solo'}={}) {
+  if(!['solo','daily','duel'].includes(mode))throw new Error('Unknown game mode');
+  for(const key of RUN_FIELDS)delete this[key];
+  Object.assign(this,{rulesVersion:RULES_VERSION,seed:String(seed),mode,level:1,score:0,streak:0,multiplier:1,totalBounces:0,livesRemaining:CONFIG.bounceLimit,bestComeback:0,history:[],paused:false,gameOver:false});this.newLevel();
+ }
+ get bounceBudget(){return this.totalBounces+this.livesRemaining;}
+ get damage(){return Math.max(0,CONFIG.bounceLimit-this.livesRemaining);}
+ snapshot(){return structuredClone(Object.fromEntries(RUN_FIELDS.filter(k=>this[k]!==undefined).map(k=>[k,this[k]])));}
+ // Only restore trusted state with the same clock; persisted servers inject Date.now.
+ restore(snapshot){
+  if(snapshot?.rulesVersion!==RULES_VERSION)throw new Error('Unsupported run version');
+  for(const key of RUN_FIELDS)delete this[key];
+  for(const key of RUN_FIELDS)if(Object.hasOwn(snapshot,key))this[key]=structuredClone(snapshot[key]);
+  return this;
+ }
  newLevel() {
   const d=difficulty(this.level); this.settings=d; this.bounces=0; this.bonusTime=0;
+  const random=this.randomOverride||seededRandom(`${this.rulesVersion}:${this.seed}:${this.level}`);
   this.words=[];let hardWords=0;
   for(let i=0;i<d.count;i++){
-   const roll=this.random();let pool=roll<d.poolWeights.hard?'hard':roll<d.poolWeights.hard+d.poolWeights.medium?'medium':'easy';
+   const roll=random();let pool=roll<d.poolWeights.hard?'hard':roll<d.poolWeights.hard+d.poolWeights.medium?'medium':'easy';
    if(pool==='hard'&&hardWords>=d.maxHardWords)pool='medium';
    const available=[...new Set(WORDS[pool])].filter(w=>!this.words.includes(w)&&w.length<=d.maxWordLength);
-   this.words.push(available[Math.floor(this.random()*available.length)]);if(pool==='hard')hardWords++;
+   this.words.push(available[Math.floor(random()*available.length)]);if(pool==='hard')hardWords++;
   }
-  this.specialWord=this.words[Math.floor(this.random()*this.words.length)];
+  this.specialWord=this.words[Math.floor(random()*this.words.length)];
   this.beginMemorize();
  }
  beginMemorize() {
@@ -57,13 +75,13 @@ export class Game {
   const accuracy=this.locked.length/this.words.length;
   this.earned=Math.round(wpm*accuracy*this.multiplier)+comeback+this.wordBonus;
   this.score+=this.earned; this.bestComeback=Math.max(this.bestComeback,this.bounces);
-  this.history.push({level:this.level,bounces:this.bounces,points:this.earned,wpm,accuracy,comeback,wordBonus:this.wordBonus});
+  this.history.push({level:this.level,words:[...this.words],bounces:this.bounces,points:this.earned,wpm,accuracy,comeback,wordBonus:this.wordBonus});
   this.phase='pass'; this.resultAt=this.now();
  }
  fail(reason) {
   if(!['memorize','type'].includes(this.phase)||this.paused)return;
-  this.reason=reason;this.bounces++;this.totalBounces++;this.streak=0;this.multiplier=1;this.resultAt=this.now();
-  this.gameOver=this.totalBounces>=CONFIG.bounceLimit;
+  this.reason=reason;this.bounces++;this.totalBounces++;this.livesRemaining--;this.streak=0;this.multiplier=1;this.resultAt=this.now();
+  this.gameOver=this.livesRemaining<=0;
   this.phase=this.gameOver?'summary':'fail';
  }
  retry() {

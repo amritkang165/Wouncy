@@ -1,7 +1,7 @@
 # Wouncy implementation order
 
 - [x] Gentler, staggered difficulty progression.
-- [ ] Seeded shared rules, versioned runs, and separate lives/mistake tracking.
+- [x] Seeded shared rules, versioned runs, and separate lives/mistake tracking.
 - [ ] Prove online room connectivity from the itch.io iframe in two browsers.
 - [ ] Guest sessions and server-validated leaderboard.
 - [ ] Peek, Echo, capped inventory, and rare checkpoint rewards.

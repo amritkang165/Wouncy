@@ -1,4 +1,4 @@
-import { Game, CONFIG } from './engine.js';
+import { Game, CONFIG, RULES_VERSION } from './engine.js';
 import { screenCracks } from './damage.js';
 import { ArcadeAudio } from './audio.js';
 import { mountCompanion } from './companion.js';
@@ -16,8 +16,9 @@ let disposeCompanion=()=>{},disposeSharing=()=>{},disposeMovement=()=>{};
 let screenMotion={dispose(){},lockWord(){}},paintedScore=0;
 let movingWords=true,movementPositions=[];
 try{movingWords=localStorage.getItem('wouncy-moving-words')!=='false';}catch{}
-let best = 0;
-try { best = Number(localStorage.getItem('bounce-back-best-v2')) || 0; } catch {}
+const BEST_KEY='wouncy-best-v'+RULES_VERSION;
+let best=0,legacyBest=0;
+try{best=Number(localStorage.getItem(BEST_KEY))||0;legacyBest=Number(localStorage.getItem('bounce-back-best-v2'))||0;}catch{}
 let soundOn = true;
 const audioDirector=new ArcadeAudio();
 const soundButton = $('#sound-button');
@@ -36,14 +37,14 @@ const iconArrow='<span aria-hidden="true">↗</span>';
 const DAVEN={welcome:['daven-excited.webp','Daven welcoming you','✦'],think:['daven.webp','Daven pondering the words','···'],focus:['haven-hedgehog.webp','Daven typing along','⌨'],bounce:['daven.webp','Daven bouncing back','↶'],celebrate:['daven-excited.webp','Daven celebrating your clear','✦'],rest:['daven.webp','Daven taking a breather','z z'],guide:['haven-hedgehog.webp','Daven showing you the ropes','!'],proud:['daven-excited.webp','Daven cheering for your run','★']};
 function mascot(action,extra='') { const [file,label,prop]=DAVEN[action];return `<div class="daven-stage daven-${action} ${extra}" role="img" aria-label="${label}"><span class="daven-prop" aria-hidden="true">${prop}</span><img src="assets/${file}" alt="" draggable="false"><span class="daven-ground" aria-hidden="true"></span></div>`; }
 function aside(message,action) { return `<div class="daven-aside">${mascot(action)}<p><small>Daven · ${action==='think'?'thinking cap on':action==='focus'?'quietly rooting for you':action==='bounce'?'comeback coach':action==='celebrate'?'your biggest fan':'in your corner'}</small>${message}</p></div>`; }
-function personalBest(extra='',record=false){return `<div class="personal-best ${extra} ${record?'is-record':''}" aria-label="Personal best: ${best.toLocaleString()} points"><span class="best-badge-star" aria-hidden="true">★</span><span><small>${record?'new personal best':'personal best'}</small><strong>${best.toLocaleString()}<span> pts</span></strong></span></div>`;}
+function personalBest(extra='',record=false,value=best,label='personal best'){return `<div class="personal-best ${extra} ${record?'is-record':''}" aria-label="${label}: ${value.toLocaleString()} points"><span class="best-badge-star" aria-hidden="true">★</span><span><small>${record?'new personal best':label}</small><strong>${value.toLocaleString()}<span> pts</span></strong></span></div>`;}
 function menu() {
  return `<section class="menu" aria-label="Welcome to Wouncy">
   <div class="menu-banner"><span class="little-label"><span class="label-flower" aria-hidden="true">✳</span> a memory typing arcade</span><label class="motion-option"><input id="moving-words" type="checkbox" ${movingWords?'checked':''}><span>moving words<small>from level 4 · respects reduced motion</small></span></label></div>
   <div class="hero"><div class="hero-copy">
    <h1 class="title wouncy-title" aria-label="Wouncy"><span class="wordmark-text"><span class="wordmark-letter">w</span><span class="wordmark-letter wouncy-o">o</span><span class="wordmark-letter">u</span><span class="wordmark-letter">n</span><span class="wordmark-letter">c</span><span class="wordmark-letter">y</span></span><span class="wordmark-flower" aria-hidden="true">✳</span></h1>
    <p class="tagline">Give your brain <strong>a little bounce.</strong></p>
-   <div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button>${best?personalBest("best-note"):'<p class="keyboard-note">press <kbd>enter ↵</kbd> to jump in</p>'}</div>
+   <div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button>${best?personalBest("best-note"):legacyBest?personalBest("best-note",false,legacyBest,"earlier best"):'<p class="keyboard-note">press <kbd>enter ↵</kbd> to jump in</p>'}</div>
   </div><div class="character-scene">
    <span class="speech">you’ve got this.<br><em>probably.</em></span>
    <span class="character-spark" aria-hidden="true">✧</span>
@@ -60,13 +61,13 @@ function menu() {
    <span class="step-arrow" aria-hidden="true">↶</span>
    <div class="mini-step"><span class="step-number">03</span><div><strong>miss? bounce back.</strong><small>three bounces. then game over.</small></div><span class="step-doodle" aria-hidden="true">↶</span></div>
   </div>
-  ${best?'':'<p class="best-note"><span aria-hidden="true">✦</span> three bounces. make them count. <span aria-hidden="true">✦</span></p>'}
+  ${best||legacyBest?'':'<p class="best-note"><span aria-hidden="true">✦</span> three bounces. make them count. <span aria-hidden="true">✦</span></p>'}
  </section>`;
 }
 function scoreboard() {
- return `<div class="scoreboard" aria-label="Run statistics"><div class="stat"><span class="stat-label">level</span><span class="stat-value">${String(game.level).padStart(2,'0')}</span></div><div class="stat"><span class="stat-label">score</span><span class="stat-value">${game.score.toLocaleString()}</span></div><div class="stat"><span class="stat-label">multiplier</span><span class="stat-value">${game.multiplier}<small>×</small></span></div><div class="stat"><span class="stat-label">bounces</span><span class="stat-value">${game.totalBounces}<small> / ${CONFIG.bounceLimit}</small></span></div></div>${game.totalBounces?`<div class="bounce-status" role="status"><span class="bounce-tier ${game.totalBounces===1?'current':''}">01 · +5s · cracked</span><span class="bounce-tier ${game.totalBounces===2?'current':''}">02 · +3s · distorted</span><span class="bounce-tier ${game.gameOver?'current':''}">03 · GAME OVER</span></div>`:''}`;
+ return `<div class="scoreboard" aria-label="Run statistics"><div class="stat"><span class="stat-label">level</span><span class="stat-value">${String(game.level).padStart(2,'0')}</span></div><div class="stat"><span class="stat-label">score</span><span class="stat-value">${game.score.toLocaleString()}</span></div><div class="stat"><span class="stat-label">multiplier</span><span class="stat-value">${game.multiplier}<small>×</small></span></div><div class="stat"><span class="stat-label">bounces</span><span class="stat-value">${game.totalBounces}<small> / ${game.bounceBudget}</small></span></div></div>${game.totalBounces?`<div class="bounce-status" role="status"><span class="bounce-tier ${game.totalBounces===1?'current':''}">01 · +5s · cracked</span><span class="bounce-tier ${game.totalBounces===2?'current':''}">02 · +3s · distorted</span><span class="bounce-tier ${game.gameOver?'current':''}">03 · GAME OVER</span></div>`:''}`;
 }
-function timer() { return `<div class="timer-caption"><span>${game.phase==='memorize'?'A MOMENT TO REMEMBER':'TIME TO TYPE IT BACK'}</span><span>${CONFIG.bounceLimit-game.totalBounces} bounce${CONFIG.bounceLimit-game.totalBounces===1?'':'s'} left</span></div><div class="timer-row" role="timer" aria-label="Time remaining"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div><span class="timer-number" id="timer-number"></span></div>`; }
+function timer() { return `<div class="timer-caption"><span>${game.phase==='memorize'?'A MOMENT TO REMEMBER':'TIME TO TYPE IT BACK'}</span><span>${game.livesRemaining} bounce${game.livesRemaining===1?'':'s'} left</span></div><div class="timer-row" role="timer" aria-label="Time remaining"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div><span class="timer-number" id="timer-number"></span></div>`; }
 function gameScreen() {
  const phase=game.phase;
  let content='',message='';
@@ -82,7 +83,7 @@ function gameScreen() {
   message=game.bounces>=2?'I never doubted you. Okay, maybe a tiny bit.':'Nicely done. Let’s pretend I’m not impressed.';
  } else {
   const bonus=CONFIG.bounceBonuses[game.totalBounces-1];
-  content=`<div class="result-icon" aria-hidden="true">↶</div><div class="phase-label">a detour, not a dead end</div><h1 class="game-title">BOUNCE BACK.</h1><p class="result-subtitle">${game.reason}<br>Let’s give those words another go.</p><div class="result-words" aria-label="The words to remember">${game.words.map((w,i)=>`<span class="result-word ${!game.locked.includes(w)?'missed-word':''}">${w}</span>`).join('')}</div><button class="primary-button" id="retry-button">one more bounce <span aria-hidden="true">↶</span></button><div class="bounce-note">+${bonus} seconds to memorize · ${CONFIG.bounceLimit-game.totalBounces} bounce${CONFIG.bounceLimit-game.totalBounces===1?'':'s'} left</div><div class="board-hint">press Enter to try again</div>`;
+  content=`<div class="result-icon" aria-hidden="true">↶</div><div class="phase-label">a detour, not a dead end</div><h1 class="game-title">BOUNCE BACK.</h1><p class="result-subtitle">${game.reason}<br>Let’s give those words another go.</p><div class="result-words" aria-label="The words to remember">${game.words.map((w,i)=>`<span class="result-word ${!game.locked.includes(w)?'missed-word':''}">${w}</span>`).join('')}</div><button class="primary-button" id="retry-button">one more bounce <span aria-hidden="true">↶</span></button><div class="bounce-note">+${bonus} seconds to memorize · ${game.livesRemaining} bounce${game.livesRemaining===1?'':'s'} left</div><div class="board-hint">press Enter to try again</div>`;
   message=game.bounces===1?'That was just a warm-up. Obviously.':game.bounces===2?'Third time’s the charm. That’s a real thing, right?':'At this point, I’m emotionally invested.';
  }
  return `<section class="game-shell bounce-${Math.min(game.bounces,3)}"><div class="game-topline"><span class="run-label"><span class="live-dot"></span>continuous climb</span><div class="pause-controls">${['memorize','type'].includes(phase)?'<button id="pause-button" aria-label="Pause game">Ⅱ pause</button>':''}<button id="finish-button">finish run ↗</button></div></div>${scoreboard()}<div class="game-board ${phase==='fail'?'result-board fail-board':phase==='pass'?'result-board':''}">${content}${game.paused?pauseMarkup():''}</div>${aside(message,game.paused?"rest":({memorize:"think",type:"focus",fail:"bounce",pass:"celebrate"}[phase]))}</section>`;
@@ -99,7 +100,7 @@ function render(force=false){
  if(!force&&drawnPhase===game.phase&&drawnPause===game.paused)return;
  const last=drawnPhase; drawnPhase=game.phase;drawnPause=game.paused;
  if(game.phase==='summary')saveBest();
- const damage=game.phase==='menu'||(game.phase==='summary'&&!game.gameOver)?0:game.totalBounces;
+ const damage=game.phase==='menu'||(game.phase==='summary'&&!game.gameOver)?0:game.damage;
  syncAudio();
  document.body.dataset.damage=Math.min(3,damage);
  document.body.dataset.phase=game.phase;
@@ -148,7 +149,7 @@ function submit(){
  if(game.phase!=='type'){render();return;}
  if(game.index>before){playSound('lock');$('#recall-slots').innerHTML=slots();$('#word-progress').textContent=game.index;$('#bonus-progress').textContent=game.wordBonus?' · ★ +'+game.wordBonus+' on clear':'';input.placeholder='another word…';screenMotion.lockWord([...document.querySelectorAll('.recall-slot.locked')].at(-1));}
 }
-function saveBest(){if(game.score>best){best=game.score;try{localStorage.setItem('bounce-back-best-v2',String(best));}catch{}}}
+function saveBest(){if(game.score>best){best=game.score;try{localStorage.setItem(BEST_KEY,String(best));}catch{}}}
 function finish(){game.finish();render();playSound('finish');}
 function pause(){const input=$('#word-input');if(input)fieldValue=input.value;game.pause();render();}
 function resume(){game.resume();render();}

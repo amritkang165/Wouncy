@@ -79,7 +79,7 @@ await page.locator('#next-button').waitFor();assert.match(await page.locator('.r
 await page.getByRole('button',{name:'finish run'}).click();
 await page.getByRole('button',{name:'another round?'}).waitFor();
 assert.equal(await page.locator('.summary-stats strong').first().innerText(),'2');
-assert.ok(await page.evaluate(()=>Number(localStorage.getItem('bounce-back-best-v2'))>0));
+assert.ok(await page.evaluate(()=>Number(localStorage.getItem('wouncy-best-v3'))>0));
 await page.waitForTimeout(100);await page.screenshot({path:'artifacts/summary-desktop.png'});
 await page.getByRole('button',{name:'back home'}).click();await page.reload();
 assert.match(await page.locator('.best-note').innerText(),/personal best/i);
@@ -99,7 +99,7 @@ for(const size of [{width:390,height:844},{width:360,height:740},{width:768,heig
 }
 // A total of three bounces ends the run, saves the score, and offers only a fresh start.
 await page.setViewportSize({width:1280,height:800});
-await page.evaluate(()=>localStorage.removeItem('bounce-back-best-v2'));await page.goto(baseURL);
+await page.evaluate(()=>localStorage.removeItem('wouncy-best-v3'));await page.goto(baseURL);
 await page.locator('#start-button').click();
 const firstWords=await page.locator('.word-card').evaluateAll(es=>es.map(e=>e.childNodes[1].textContent));
 await page.locator('#ready-button').click();await page.locator('#word-input').fill(firstWords.join(' '));await page.keyboard.press('Enter');
@@ -130,7 +130,7 @@ assert.equal(await page.locator('#retry-button').count(),0);assert.equal(await p
 assert.equal(await page.locator('.summary-stats strong').nth(1).innerText(),'3');
 assert.equal(await page.locator('.summary-stats strong').first().innerText(),'1');
 const score=Number((await page.locator('.summary-score').innerText()).replaceAll(',',''));
-assert.ok(score>0);assert.equal(await page.evaluate(()=>Number(localStorage.getItem('bounce-back-best-v2'))),score);
+assert.ok(score>0);assert.equal(await page.evaluate(()=>Number(localStorage.getItem('wouncy-best-v3'))),score);
 const chants=await page.evaluate(()=>window.chants);
 assert.ok(chants[0].rate>chants[1].rate&&chants[1].rate>chants[2].rate);assert.ok(chants.every(c=>c.duration/c.rate<.5));
 const notesAtGameOver=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(600);
