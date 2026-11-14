@@ -2,14 +2,18 @@ WOUNCY — ASSET CREDITS
 Sources checked 14 November 2026.
 
 BACKGROUND MUSIC
-Juhani Junkala (SubspaceAudio), “4 Chiptunes (Adventure)”
-https://opengameart.org/content/4-chiptunes-adventure
-https://juhanijunkala.com/
+vitalezzz, “Singularity”
+https://opengameart.org/content/singularity-0
 License: CC0 1.0 https://creativecommons.org/publicdomain/zero/1.0/
-- stage-1.mp3: “1. Stage 1” (gameplay)
-- stage-select.mp3: “4. Stage Select” (menu and run summary)
-Converted from the original OGG files to 96 kbps MP3. The full loops are retained.
-Author's original license statement: audio/Juhani-Junkala-CC0.txt
+- singularity-calm.mp3: calm version (menu and run summary)
+- singularity-focus.mp3: synchronized mix of 60% calm and 40% action (gameplay)
+Original files:
+https://opengameart.org/sites/default/files/singularity_calm.wav
+https://opengameart.org/sites/default/files/singularity_action.wav
+Both full-length loops are retained. Converted to 96 kbps stereo MP3.
+Menu normalized to -20 LUFS; gameplay mix normalized to -18 LUFS;
+normalization targets a -2 dBTP ceiling and 9 LU loudness range.
+License record: audio/Singularity-CC0.txt
 
 SOUND EFFECTS
 Kenney, “UI Audio” https://kenney.nl/assets/ui-audio

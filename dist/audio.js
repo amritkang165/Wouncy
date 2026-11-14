@@ -1,5 +1,5 @@
 export const AUDIO_CONFIG=Object.freeze({chantRates:[.98,.9,.84],maxSting:.49,musicVolume:.18});
-const FILES={menu:'stage-select.mp3',game:'stage-1.mp3',start:'start.wav',lock:'lock.wav',recall:'recall.wav',pass:'clear.wav',retry:'retry.wav',finish:'finish.wav',voice:'bounce-back.wav'};
+const FILES={menu:'singularity-calm.mp3',game:'singularity-focus.mp3',start:'start.wav',lock:'lock.wav',recall:'recall.wav',pass:'clear.wav',retry:'retry.wav',finish:'finish.wav',voice:'bounce-back.wav'};
 export function distortionCurve(bounces){
  const amount=[0,9,28,48][Math.min(3,Math.max(0,bounces))];
  const curve=new Float32Array(1024);

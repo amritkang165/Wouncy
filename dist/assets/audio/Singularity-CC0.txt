@@ -1,0 +1,11 @@
+Singularity — vitalezzz
+Source: https://opengameart.org/content/singularity-0
+Source license checked: 14 November 2026
+
+The artist lists both the calm and action versions under Creative Commons Zero
+(CC0 1.0 Universal). The page identifies the work as “Vitalezzz - Singularity”.
+License: https://creativecommons.org/publicdomain/zero/1.0/
+
+This project uses the calm version for menus and a synchronized 60% calm / 40%
+action mix for gameplay. Both are normalized and encoded as 96 kbps MP3.
+See ../CREDITS.txt for source URLs and normalization details.
