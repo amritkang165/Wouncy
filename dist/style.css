@@ -141,3 +141,4 @@ body[data-damage="2"] .landscape,body[data-damage="2"] .game-shell{filter:satura
 @keyframes daven-sparkle{0%,100%{scale:1;rotate:0deg}45%{scale:1.3;rotate:25deg}}
 .primary-button:hover>span{transform:translate(2px,-2px)}
 @media(prefers-reduced-motion:reduce),(hover:none),(pointer:coarse){.daven-hero{transform:none;will-change:auto}.character-scene .floating-word,.character-scene .character-spark{translate:none}}
+.game-over .summary-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}

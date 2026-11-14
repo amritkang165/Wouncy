@@ -58,4 +58,4 @@ The failure chant is bundled as a short PCM recording synthesized with the macOS
 
 Scoring now follows the PRD formula. Personal bests use a new storage key so the prototype’s old word-count bonuses do not inflate the leaderboard.
 
-Game over preserves your score and saves a new personal best automatically. The summary provides a restart button; there is no third retry or scuffed-bounce continuation.
+Game over shows the last level reached, preserves your score, and saves a new personal best automatically. The summary provides a restart button; there is no third retry or scuffed-bounce continuation.
