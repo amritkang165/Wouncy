@@ -1,0 +1,16 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "wouncy-api",
+  "main": "index.js",
+  "compatibility_date": "2026-11-14",
+  "vars": {
+    "ALLOWED_ORIGINS": "https://html-classic.itch.zone,http://localhost:4173,http://127.0.0.1:4173,http://localhost:4180,http://127.0.0.1:4180"
+  },
+  "durable_objects": {
+    "bindings": [
+      {"name":"ROOMS","class_name":"WouncyRoom"},
+      {"name":"LIMITS","class_name":"RequestLimits"}
+    ]
+  },
+  "migrations": [{"tag":"v1","new_sqlite_classes":["WouncyRoom","RequestLimits"]}]
+}

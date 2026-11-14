@@ -1,4 +1,6 @@
 node_modules/
 .DS_Store
 artifacts/
+.wrangler/
+.dev.vars*
 *.tar.gz

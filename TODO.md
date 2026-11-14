@@ -2,7 +2,7 @@
 
 - [x] Gentler, staggered difficulty progression.
 - [x] Seeded shared rules, versioned runs, and separate lives/mistake tracking.
-- [ ] Prove online room connectivity from the itch.io iframe in two browsers.
+- [ ] Prove online room connectivity from the itch.io iframe in two browsers. Local two-browser transport is verified; deployment authorization is pending.
 - [ ] Guest sessions and server-validated leaderboard.
 - [ ] Peek, Echo, capped inventory, and rare checkpoint rewards.
 - [ ] Earned, once-per-run memory rescue.
