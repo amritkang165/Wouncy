@@ -18,7 +18,7 @@ Open http://localhost:4173. The deployable game is entirely inside `dist/` and w
 
 - Enter starts a run and moves from memorizing to recall.
 - Type a word and press Space or Enter to lock it in.
-- The first bounce adds 5 seconds of memorization; the second adds 3. Later bounces run the clock 25% faster with no added time.
+- The first bounce adds 5 seconds of memorization; the second adds 3. From the third bounce onward, no time is added: one shared clock covers memorization and typing. Looking uses up typing time, and hiding the words does not reset the timer. There is no speed multiplier.
 - Clean clears raise your score multiplier, up to 3×. Clears after 2+ bounces earn comeback points.
 - Escape pauses. Leaving the tab or opening instructions automatically pauses an active timer.
 - Finish run shows your score, levels, bounces, comeback, and per-level results. Your best score saves in this browser when storage is available.

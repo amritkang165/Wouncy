@@ -2,13 +2,14 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 await mkdir('artifacts',{recursive:true});
+const baseURL=process.env.BASE_URL || 'http://localhost:4173';
 const browser=await chromium.launch({channel:'chrome',headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:960},reducedMotion:'reduce'});
 const page=await context.newPage();
 const errors=[];
 page.on('pageerror',e=>errors.push(e.message));
 page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+r.url());});
-await page.goto('http://localhost:4173');await page.evaluate(()=>document.fonts.ready);
+await page.goto(baseURL);await page.evaluate(()=>document.fonts.ready);
 await page.waitForTimeout(100);await page.screenshot({path:'artifacts/menu-desktop.png'});
 assert.match(await page.getByRole('heading',{level:1}).innerText(),/BOUNCE\s+BACK/);
 await page.getByRole('button',{name:'how to play'}).click();
@@ -77,6 +78,21 @@ for(const size of [{width:390,height:844},{width:360,height:740},{width:768,heig
  await page.waitForTimeout(100);await page.screenshot({path:`artifacts/recall-${size.width}.png`});
  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
 }
+// The third retry spends typing time while words are visible, without a refill.
+await page.setViewportSize({width:1280,height:800});await page.goto(baseURL);
+await page.locator('#start-button').click();
+for(let bounce=1;bounce<=3;bounce++){
+ await page.locator('#ready-button').click();await page.locator('#word-input').fill('wrong');await page.keyboard.press('Enter');
+ await page.locator('#retry-button').waitFor();
+ if(bounce===3)assert.match(await page.locator('.bounce-note').innerText(),/SCUFFED BOUNCE.*\+0 seconds/);
+ await page.locator('#retry-button').click();
+}
+assert.match(await page.locator('.board-hint').innerText(),/looking uses your typing time/);
+await page.waitForTimeout(400);
+const sharedBefore=Number.parseFloat(await page.locator('#timer-number').innerText());
+await page.locator('#ready-button').click();await page.waitForTimeout(70);
+const sharedAfter=Number.parseFloat(await page.locator('#timer-number').innerText());
+assert.ok(sharedAfter<=sharedBefore && sharedBefore-sharedAfter<1,'scuffed recall must retain the shared deadline');
 assert.deepEqual(errors,[]);
 console.log('Browser checks passed: full game loop, retries, comeback bonus, pause, instructions, saved best, sound, and responsive layouts.');
 await browser.close();

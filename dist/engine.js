@@ -1,4 +1,4 @@
-export const CONFIG = Object.freeze({ startTime:15, timeStep:2, minTime:4, bounceBonuses:[5,3,0], scuffedRate:1.25, maxWords:8, maxMultiplier:3 });
+export const CONFIG = Object.freeze({ startTime:15, timeStep:2, minTime:4, bounceBonuses:[5,3,0], maxWords:8, maxMultiplier:3 });
 export const WORDS = {
  easy:'sun moss leaf pond frog fern moon star seed rain bird nest twig fish cloud peach apple clover honey acorn berry creek bloom petal snail river maple grass stone sprout dream cozy warm glow soft happy tiny home jump bounce green orange yellow garden daisy tulip robin wren plum pear cherry hazel pine mint sage root bark wood tree rose lily hill lake brook camp tent kite wind wave sand shell beach coral whale otter fox bear deer hare mouse mole duck swan dove owl goat sheep lamb calf horse pony sheepdog cat dog bee moth wing ant bug worm beetle log path trail boot sock hat coat scarf mitt cake bread toast jam pie milk tea cup mug pot pan bowl spoon fork book page pen ink note song tune bell drum hum smile laugh wish hope hug nap rest dawn dusk day night light dark blue pink gold red brown snow frost ice dew drop pool splash hop skip roll run walk step climb sit sleep wake play game friend heart luck charm spark blush brush crunch crisp fluff puff fluffball nut bun fig melon grape lemon lime mango apricot oat wheat corn rice bean pea'.split(' '),
  medium:'meadow mushroom sunshine autumn firefly picnic flutter adventure whisper forest blanket pumpkin blossom squirrel rainbow sparkle daydream campfire waterfall lantern wildflower cinnamon chestnut hillside raindrop feather butterfly hummingbird evergreen marigold woodland starlight moonbeam sunrise sunset pebble skipping jumping bouncing wander wonder gentle giggle wobble tumble twinkle ribbon pocket doodle puddle breezy sleepy curious playful cheerful hopeful fearless little golden silver cloudy sunny morning evening midnight afternoon breakfast backpack notebook teacup cookie cupcake pancake waffles cocoa honeycomb blueberry strawberry raspberry gooseberry cranberry orchard harvest hedgehog sparrow swallow dragonfly ladybird grasshopper caterpillar turtle rabbit badger beaver raccoon chipmunk porcupine cricket cicada tadpole ladybug maplewood driftwood snowdrop bluebell foxglove dandelion lavender rosemary sunflower magnolia jasmine gardenia petunia begonia anemone buttercup snowflake snowball snowman rainbow acorncap treasure journey compass footsteps treehouse hammock laughter kindness patience courage memory remember forget return again'.split(' '),
@@ -16,12 +16,22 @@ export class Game {
   for(let i=0;i<d.count;i++) this.words.push(pool.splice(Math.floor(this.random()*pool.length),1)[0]);
   this.beginMemorize();
  }
- beginMemorize() { this.phase='memorize'; this.index=0; this.locked=[]; this.duration=this.settings.memorize+this.bonusTime; this.started=this.now(); this.deadline=this.started+this.duration*1000; this.rate=this.bounces>=3?CONFIG.scuffedRate:1; }
- get remaining() { return Math.max(0,(this.deadline-(this.paused?this.pausedAt:this.now()))/1000*this.rate); }
+ get scuffed() { return this.bounces >= 3; }
+ beginMemorize() {
+  this.phase='memorize'; this.index=0; this.locked=[];
+  this.duration=this.settings.memorize+this.bonusTime;
+  this.started=this.now(); this.deadline=this.started+this.duration*1000;
+ }
+
+ get remaining() { return Math.max(0,(this.deadline-(this.paused?this.pausedAt:this.now()))/1000); }
  get fraction() { return Math.min(1,this.remaining/this.duration); }
  recall() {
   if(this.phase!=='memorize'||this.paused)return;
-  this.phase='type'; this.duration=12+this.words.length*3; this.started=this.now(); this.deadline=this.started+this.duration*1000/this.rate; this.typingStarted=this.now();
+  if(this.scuffed && this.remaining<=0){this.fail('The shared clock ran out while you were looking.');return;}
+  this.phase='type';
+  // A scuffed bounce shares one deadline across looking and typing. Never refill it.
+  if(!this.scuffed){this.duration=12+this.words.length*3;this.started=this.now();this.deadline=this.started+this.duration*1000;}
+  this.typingStarted=this.now();
  }
  submit(value) {
   if(this.phase!=='type'||this.paused)return false;
@@ -51,11 +61,10 @@ export class Game {
   if(this.phase!=='fail')return;
   this.bonusTime+=CONFIG.bounceBonuses[Math.min(this.bounces-1,2)];
   this.beginMemorize();
-  // Retry time is real clock time; scuffed bounces drain 25% faster.
-  this.deadline=this.started+this.duration*1000/this.rate;
+
  }
  next() { if(this.phase!=='pass')return;this.level++;this.newLevel(); }
- tick(){if(this.paused)return;if((this.phase==='memorize'||this.phase==='type')&&this.remaining<=0){if(this.phase==='memorize')this.recall();else this.fail('The clock got there first.');}}
+ tick(){if(this.paused)return;if((this.phase==='memorize'||this.phase==='type')&&this.remaining<=0){if(this.phase==='memorize'&&!this.scuffed)this.recall();else this.fail('The clock got there first.');}}
  pause(){if(!['memorize','type'].includes(this.phase)||this.paused)return false;this.paused=true;this.pausedAt=this.now();return true;}
  resume(){if(!this.paused)return;const delta=this.now()-this.pausedAt;this.deadline+=delta;this.started+=delta;if(this.phase==='type')this.typingStarted+=delta;this.paused=false;}
  finish(){if(this.paused)this.resume();this.phase='summary';}
