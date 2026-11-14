@@ -19,14 +19,14 @@ Open http://localhost:4173. The deployable game is entirely inside `dist/` and w
 - Enter starts a run and moves from memorizing to recall.
 - Type a word and press Space or Enter to lock it in.
 - The first bounce adds 5 seconds of memorization; the second adds 3. From the third bounce onward, no time is added: one shared clock covers memorization and typing. Looking uses up typing time, and hiding the words does not reset the timer. There is no speed multiplier.
-- Clean clears raise your score multiplier, up to 3×. Clears after 2+ bounces earn comeback points.
+- Level score is typing speed (WPM) × accuracy (0–1) × streak multiplier. Clean clears raise the multiplier by 0.5×, up to 3×. Clears after 2+ bounces add 100 points per bounce. Clears automatically advance after an 850 ms celebration.
 - Escape pauses. Leaving the tab or opening instructions automatically pauses an active timer.
 - Finish run shows your score, levels, bounces, comeback, and per-level results. Your best score saves in this browser when storage is available.
 - Sound is optional. The bundled “BOUNCE BACK” chant plays on failure. A chiptune loop, warped stings, and the chant distort progressively with bounce count. Clean clears get a quiet sting. Pause, mute, and hidden tabs stop audio.
 
 ## Development
 
-`dist/engine.js` contains the state machine, tunable constants, difficulty progression, and word pools. `dist/app.js` handles the browser interface. `dist/style.css` holds the responsive design. No build step is required.
+`dist/config.js` holds timing, difficulty, and scoring constants. `dist/engine.js` contains the state machine and word pools. `dist/app.js` handles the browser interface. `dist/style.css` holds the responsive design. No build step is required.
 
 ```sh
 npm test
@@ -51,3 +51,7 @@ The PRD's Python/Pygame distribution was adapted to a browser game at the user's
 Commit each completed feature or fix separately with a descriptive message. Run the relevant checks before committing. Keep unrelated changes out of feature commits.
 
 The failure chant is bundled as a short PCM recording synthesized with the macOS Eddy voice. It needs no speech service or network request beyond loading the local asset.
+
+Scoring now follows the PRD formula. Personal bests use a new storage key so the prototype’s old word-count bonuses do not inflate the leaderboard.
+
+On scuffed bounces, the retained memorization allowance becomes one shared attempt budget. This resolves the PRD’s “timer drains while words are still shown” rule: looking consumes time available for recall, with no refill or speed multiplier.

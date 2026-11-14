@@ -7,7 +7,7 @@ const game = new Game();
 const help = $('#help-dialog');
 let drawnPhase = '', drawnPause = false, fieldValue = '', frame = 0, returnFocus = null, helpPaused = false;
 let best = 0;
-try { best = Number(localStorage.getItem('bounce-back-best')) || 0; } catch {}
+try { best = Number(localStorage.getItem('bounce-back-best-v2')) || 0; } catch {}
 let soundOn = true;
 const audioDirector=new ArcadeAudio();
 try { soundOn = localStorage.getItem('bounce-back-sound') !== 'false'; } catch {}
@@ -42,7 +42,7 @@ function gameScreen() {
   message='I’m not saying anything. This is your big moment.';
  } else if(phase==='pass') {
   const last=game.history.at(-1);
-  content=`<div class="result-icon" aria-hidden="true">✳</div><div class="phase-label">level ${String(game.level).padStart(2,'0')} cleared</div><h1 class="game-title">${game.bounces>=2?'What a comeback!':game.bounces?'There you go!':'Look at you go!'}</h1><p class="result-subtitle">${game.bounces>=2?'You got knocked back. You came back stronger.':game.bounces?'A little persistence goes a long way.':'Clean clear. A tiny round of applause.'}</p><div class="result-points">+${game.earned.toLocaleString()} points <span aria-hidden="true">✦</span></div><div class="result-subtitle">${last.wpm} wpm · ${game.multiplier}× multiplier${last.comeback?' · +'+last.comeback+' comeback bonus':''}</div><button class="secondary-button" id="next-button" style="margin-top:23px">next little challenge <span aria-hidden="true">→</span></button><div class="board-hint">press Enter to keep climbing</div>`;
+  content=`<div class="result-icon" aria-hidden="true">✳</div><div class="phase-label">level ${String(game.level).padStart(2,'0')} cleared</div><h1 class="game-title">${game.bounces>=2?'What a comeback!':game.bounces?'There you go!':'Look at you go!'}</h1><p class="result-subtitle">${game.bounces>=2?'You got knocked back. You came back stronger.':game.bounces?'A little persistence goes a long way.':'Clean clear. A tiny round of applause.'}</p><div class="result-points">+${game.earned.toLocaleString()} points <span aria-hidden="true">✦</span></div><div class="result-subtitle">${last.wpm} wpm · ${Math.round(last.accuracy*100)}% accuracy · ${game.multiplier}× multiplier${last.comeback?' · +'+last.comeback+' comeback bonus':''}</div><button class="secondary-button" id="next-button" style="margin-top:23px">next little challenge <span aria-hidden="true">→</span></button><div class="board-hint">next level in a moment · Enter to skip</div>`;
   message=game.bounces>=2?'I never doubted you. Okay, maybe a tiny bit.':'Nicely done. Let’s pretend I’m not impressed.';
  } else {
   const bonus=CONFIG.bounceBonuses[Math.min(game.bounces-1,2)];
@@ -99,7 +99,7 @@ function submit(){
  if(game.phase!=='type'){render();return;}
  if(game.index>before){playSound('lock');$('#recall-slots').innerHTML=slots();$('#word-progress').textContent=game.index+1;input.placeholder='next word…';}
 }
-function finish(){game.finish();if(game.score>best){best=game.score;try{localStorage.setItem('bounce-back-best',String(best));}catch{}}render();}
+function finish(){game.finish();if(game.score>best){best=game.score;try{localStorage.setItem('bounce-back-best-v2',String(best));}catch{}}render();}
 function pause(){const input=$('#word-input');if(input)fieldValue=input.value;game.pause();render();}
 function resume(){game.resume();render();}
 function updateTimer(){
