@@ -5,6 +5,7 @@ import { mountCompanion } from './companion.js';
 import { shareControls, mountSharing } from './sharing.js';
 import { createViewportFitter } from './viewport.js';
 import { mountMovingWords } from './movement.js';
+import { mountScreenMotion } from './animations.js';
 const $ = (selector) => document.querySelector(selector);
 const app = $('#app');
 const game = new Game();
@@ -12,6 +13,7 @@ const help = $('#help-dialog');
 const fitScreen=createViewportFitter(app,help);
 let drawnPhase = '', drawnPause = false, fieldValue = '', frame = 0, returnFocus = null, helpPaused = false;
 let disposeCompanion=()=>{},disposeSharing=()=>{},disposeMovement=()=>{};
+let screenMotion={dispose(){},lockWord(){}},paintedScore=0;
 let movingWords=true,movementPositions=[];
 try{movingWords=localStorage.getItem('wouncy-moving-words')!=='false';}catch{}
 let best = 0;
@@ -39,7 +41,7 @@ function menu() {
  return `<section class="menu" aria-label="Welcome to Wouncy">
   <div class="menu-banner"><span class="little-label"><span class="label-flower" aria-hidden="true">✳</span> a memory typing arcade</span><label class="motion-option"><input id="moving-words" type="checkbox" ${movingWords?'checked':''}><span>moving words<small>from level 4 · respects reduced motion</small></span></label></div>
   <div class="hero"><div class="hero-copy">
-   <h1 class="title wouncy-title" aria-label="Wouncy"><span>w<span class="wouncy-o">o</span>uncy</span><span class="wordmark-flower" aria-hidden="true">✳</span></h1>
+   <h1 class="title wouncy-title" aria-label="Wouncy"><span class="wordmark-text"><span class="wordmark-letter">w</span><span class="wordmark-letter wouncy-o">o</span><span class="wordmark-letter">u</span><span class="wordmark-letter">n</span><span class="wordmark-letter">c</span><span class="wordmark-letter">y</span></span><span class="wordmark-flower" aria-hidden="true">✳</span></h1>
    <p class="tagline">Give your brain <strong>a little bounce.</strong></p>
    <div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button>${best?personalBest("best-note"):'<p class="keyboard-note">press <kbd>enter ↵</kbd> to jump in</p>'}</div>
   </div><div class="character-scene">
@@ -101,10 +103,12 @@ function render(force=false){
  document.body.dataset.phase=game.phase;
  $('#screen-damage').innerHTML=screenCracks(damage);
  document.body.classList.toggle('impact',game.phase==='fail'||(game.phase==='summary'&&game.gameOver));
+ screenMotion.dispose();
  disposeCompanion();disposeCompanion=()=>{};disposeSharing();disposeSharing=()=>{};disposeMovement();disposeMovement=()=>{};
  app.innerHTML='<div class="viewport-content">'+(game.phase==='menu'?menu():game.phase==='summary'?summary():gameScreen())+'</div>';
  fitScreen(app.firstElementChild);
- if(game.phase==='summary'&&game.gameOver)disposeSharing=mountSharing($('.summary'),{score:game.score,level:game.level,cleared:game.history.length});
+ screenMotion=mountScreenMotion(app,{phase:game.phase,paused:game.paused,gameOver:game.gameOver,score:game.score||0,previousScore:paintedScore});paintedScore=game.score||0;
+ if(game.phase==='summary'&&game.gameOver)disposeSharing=mountSharing($('.summary'),{score:game.score,level:game.level,cleared:game.history.length,ready:screenMotion.ready});
  if(game.phase==='menu')disposeCompanion=mountCompanion($('.menu'));
  if(game.phase==='memorize'&&movingWords&&game.settings.movementSpeed)disposeMovement=mountMovingWords($('.word-field'),{speed:game.settings.movementSpeed,paused:game.paused,positions:movementPositions});
  $('#moving-words')?.addEventListener('change',event=>{movingWords=event.target.checked;try{localStorage.setItem('wouncy-moving-words',String(movingWords));}catch{}});
@@ -140,7 +144,7 @@ function submit(){
  const input=$('#word-input');const value=input.value;if(!value.trim())return;
  const before=game.index;game.submit(value);fieldValue='';input.value='';
  if(game.phase!=='type'){render();return;}
- if(game.index>before){playSound('lock');$('#recall-slots').innerHTML=slots();$('#word-progress').textContent=game.index;$('#bonus-progress').textContent=game.wordBonus?' · ★ +'+game.wordBonus+' on clear':'';input.placeholder='another word…';}
+ if(game.index>before){playSound('lock');$('#recall-slots').innerHTML=slots();$('#word-progress').textContent=game.index;$('#bonus-progress').textContent=game.wordBonus?' · ★ +'+game.wordBonus+' on clear':'';input.placeholder='another word…';screenMotion.lockWord([...document.querySelectorAll('.recall-slot.locked')].at(-1));}
 }
 function saveBest(){if(game.score>best){best=game.score;try{localStorage.setItem('bounce-back-best-v2',String(best));}catch{}}}
 function finish(){game.finish();render();playSound('finish');}

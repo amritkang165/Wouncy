@@ -156,3 +156,23 @@ body[data-phase="menu"] .footer-star,
 .menu > .best-note > span[aria-hidden="true"]{display:none}
 
 @media(max-width:600px){.brand-mascot{width:33px;height:33px}}
+
+/* Quiet, tactile motion: no new stars, glow, or background ornaments. */
+.wordmark-letter{display:inline-block;transform-origin:50% 85%}
+.wordmark-text{white-space:nowrap}
+.wouncy-title:hover .wordmark-letter{animation:wouncy-letter-hop .6s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--letter-index,0)*45ms)}
+.wordmark-letter:nth-child(2){--letter-index:1}.wordmark-letter:nth-child(3){--letter-index:2}.wordmark-letter:nth-child(4){--letter-index:3}.wordmark-letter:nth-child(5){--letter-index:4}.wordmark-letter:nth-child(6){--letter-index:5}
+.primary-button,.secondary-button,.submit-button,.pause-controls button,.share-buttons>a,.share-buttons>button{transition:transform .2s cubic-bezier(.22,1,.36,1),scale .2s cubic-bezier(.22,1,.36,1),background-color .2s,border-color .2s}
+.primary-button:active,.secondary-button:active,.submit-button:active,.share-buttons>a:active,.share-buttons>button:active{scale:.96}
+.menu .mini-step{transition:translate .25s cubic-bezier(.22,1,.36,1)}
+.menu .mini-step:hover{translate:0 -4px}.menu .mini-step:hover .step-number{rotate:-9deg;background:#dce3c7}
+.step-number{transition:rotate .25s,background-color .25s}
+.brand-mascot{transition:rotate .35s cubic-bezier(.22,1,.36,1)}.brand:hover .brand-mascot{rotate:13deg}
+.speech{animation:wouncy-speech-drift 6s ease-in-out infinite}
+.recall-slot.locked{animation:none}
+.word-input{transition:border-color .2s,outline-color .2s,background-color .2s}
+.word-input:focus{background:#f8f2e7}
+.timer-fill{transition:background-color .25s}
+@keyframes wouncy-letter-hop{0%,100%{translate:0 0}40%{translate:0 -9px}70%{translate:0 2px}}
+@keyframes wouncy-speech-drift{0%,100%{translate:0 0}50%{translate:0 -4px}}
+@media(prefers-reduced-motion:reduce){.speech,.wouncy-title:hover .wordmark-letter{animation:none!important}.menu .mini-step:hover{translate:none}.brand:hover .brand-mascot{rotate:none}.primary-button:active,.secondary-button:active,.submit-button:active,.share-buttons>a:active,.share-buttons>button:active{scale:1}}

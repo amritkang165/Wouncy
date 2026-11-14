@@ -11,7 +11,7 @@ export function gameURL(){
  }
  return location.origin+location.pathname;
 }
-export function mountSharing(summary,{score,level,cleared}){
+export function mountSharing(summary,{score,level,cleared,ready=Promise.resolve()}){
  const panel=summary.querySelector('.share-panel'),status=panel.querySelector('.share-status');
  const text=`I scored ${score.toLocaleString()} points and reached level ${level} in Wouncy! ${cleared} level${cleared===1?'':'s'} cleared. A memory typing game by Team Pheonix. Can you beat my comeback?`;
  const url=gameURL(),message=text+'\n'+url;
@@ -48,6 +48,8 @@ export function mountSharing(summary,{score,level,cleared}){
  },options);
  (async()=>{
   try{
+   await ready;
+   if(disposed)return;
    await document.fonts.ready;
    await import('./vendor/html-to-image.js');
    if(disposed)return;

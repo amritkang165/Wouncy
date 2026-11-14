@@ -4,6 +4,7 @@ export function mountCompanion(menu){
  const motion=matchMedia('(prefers-reduced-motion: reduce)');
  const mouse=matchMedia('(hover: hover) and (pointer: fine)');
  const controller=new AbortController(),options={signal:controller.signal};
+ let reaction=null;
  let frame=0,previous=0,current=[0,0,0,0],target=[0,0,0,0];
  const clamp=value=>Math.max(-1,Math.min(1,value));
  function paint(){
@@ -21,7 +22,7 @@ export function mountCompanion(menu){
  }
  function aim(values){target=values;if(!frame)frame=requestAnimationFrame(step);}
  function reset(){aim([0,0,0,0]);scene.classList.remove('daven-delighted');}
- function stop(){cancelAnimationFrame(frame);frame=0;previous=0;current=target=[0,0,0,0];paint();scene.classList.remove('daven-delighted');}
+ function stop(){reaction?.cancel();reaction=null;cancelAnimationFrame(frame);frame=0;previous=0;current=target=[0,0,0,0];paint();scene.classList.remove('daven-delighted');}
  function move(event){
   if(event.pointerType!=='mouse'||motion.matches||!mouse.matches||document.hidden||document.querySelector('dialog[open]'))return;
   const rect=scene.getBoundingClientRect(),dx=event.clientX-(rect.left+rect.width/2),dy=event.clientY-(rect.top+rect.height/2);
@@ -33,8 +34,13 @@ export function mountCompanion(menu){
  scene.addEventListener('pointerdown',event=>{
   if(event.pointerType!=='mouse'||motion.matches||!mouse.matches)return;
   scene.classList.remove('daven-delighted');
-  // Restart just the little sparkle, never the main character's animation.
-  void scene.offsetWidth;scene.classList.add('daven-delighted');
+  reaction?.cancel();
+  reaction=scene.querySelector('.daven-hero img').animate([
+   {scale:'1'},{scale:'1.1 .88',offset:.24},{scale:'.95 1.08',offset:.55},{scale:'1.03 .98',offset:.8},{scale:'1'}
+  ],{duration:620,easing:'cubic-bezier(.22,1,.36,1)'});
+  reaction.id='wouncy-daven-squish';
+  reaction.finished.catch(()=>{});
+  scene.classList.add('daven-delighted');
  },options);
  scene.addEventListener('animationend',event=>{if(event.animationName==='daven-sparkle')scene.classList.remove('daven-delighted');},options);
  window.addEventListener('blur',stop,options);

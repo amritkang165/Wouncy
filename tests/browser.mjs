@@ -146,4 +146,43 @@ assert.equal(await page.evaluate(()=>window.activeLoops.size),0,'mute must stop 
 const mutedNotes=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>window.noteStarts),mutedNotes);
 assert.deepEqual(errors,[]);
 console.log('Browser checks passed: full game loop, three-bounce game over, score persistence, restart, cracks, audio, pause, and responsive layouts.');
+// Exercise the animated path separately from the reduced-motion game checks.
+const motionContext=await browser.newContext({viewport:{width:1280,height:900},reducedMotion:'no-preference'});
+const animated=await motionContext.newPage();animated.on('pageerror',e=>errors.push(e.message));
+await animated.goto(baseURL);
+await animated.waitForFunction(()=>document.getAnimations().some(a=>a.id.startsWith('wouncy-')));
+assert.equal(await animated.locator('.wordmark-letter').count(),6);
+await animated.waitForTimeout(750);
+for(const selector of ['.menu .wordmark-flower','.menu .character-spark','.menu .daven-prop']){
+ assert.equal(await animated.locator(selector).evaluateAll(es=>es.some(e=>getComputedStyle(e).display!=='none')),false,'removed home-page stars must stay hidden');
+}
+await animated.locator('.character-scene').click();
+await animated.waitForFunction(()=>document.getAnimations().some(a=>a.id==='wouncy-daven-squish'));
+await animated.evaluate(()=>{window.oldReactions=document.getAnimations().filter(a=>a.id==='wouncy-daven-squish');});
+await animated.locator('#start-button').click();
+assert.equal(await animated.evaluate(()=>window.oldReactions.every(a=>['idle','finished'].includes(a.playState))),true,'changing screens must cancel the old reaction');
+const animatedWords=await animated.locator('.word-card').evaluateAll(es=>es.map(e=>e.dataset.word));
+await animated.locator('#ready-button').click();await animated.locator('#word-input').fill(animatedWords[0]);await animated.keyboard.press('Space');
+await animated.waitForFunction(()=>document.getAnimations().some(a=>a.id==='wouncy-word-lock'));
+await animated.emulateMedia({reducedMotion:'reduce'});await animated.waitForTimeout(60);
+assert.equal(await animated.evaluate(()=>document.getAnimations().some(a=>a.id.startsWith('wouncy-')&&a.playState==='running')),false,'reduced motion must cancel active UI animation');
+await animated.emulateMedia({reducedMotion:'no-preference'});
+await animated.locator('#word-input').fill(animatedWords.slice(1).join(' '));await animated.keyboard.press('Enter');
+await animated.locator('#next-button').waitFor();await animated.waitForTimeout(700);
+const earned=Number((await animated.locator('.result-points').innerText()).match(/[\d,]+/)[0].replaceAll(',',''));
+assert.equal(Number((await animated.locator('.stat-value').nth(1).innerText()).replaceAll(',','')),earned,'the score animation must finish at the actual earned score');
+await animated.screenshot({path:'artifacts/animated-clear.png'});
+await animated.locator('#next-button').click();
+for(let i=0;i<3;i++){
+ await animated.locator('#ready-button').click();await animated.locator('#word-input').fill('wrong');await animated.keyboard.press('Enter');
+ if(i<2)await animated.locator('#retry-button').click();
+}
+await animated.getByRole('heading',{name:'GAME OVER.'}).waitFor();
+await animated.locator('[data-share="download"]:enabled').waitFor();
+assert.equal(Number((await animated.locator('.summary-score').innerText()).replaceAll(',','')),earned,'shared results must retain the full score');
+assert.equal(await animated.evaluate(()=>document.getAnimations().some(a=>a.id.startsWith('wouncy-')&&a.playState==='running')),false,'score screenshots must wait for entrance animations');
+await animated.locator('#restart-button').click();await animated.emulateMedia({reducedMotion:'reduce'});
+await animated.waitForTimeout(80);assert.equal(await animated.evaluate(()=>document.getAnimations().some(a=>a.id.startsWith('wouncy-')&&a.playState==='running')),false);
+assert.deepEqual(errors,[]);await motionContext.close();
+console.log('Animation checks passed: entrances, Daven interaction, word feedback, exact scores, screenshot readiness, teardown, and reduced-motion changes.');
 await browser.close();
