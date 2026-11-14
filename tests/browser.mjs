@@ -25,7 +25,7 @@ await page.waitForTimeout(100);await page.screenshot({path:'artifacts/menu-deskt
 assert.equal(await page.getByRole('heading',{level:1,name:'Wouncy'}).count(),1);
 assert.match(await page.title(),/^Wouncy/);
 assert.equal(await page.getByRole('link',{name:'Wouncy home'}).count(),1);
-// Sound starts on for a new player; opting out is persisted.
+// Sound starts on for every visit; the same button toggles it for this visit.
 await page.getByRole('button',{name:'Turn sound off'}).click();
 await page.getByRole('button',{name:'how to play'}).click();
 assert.equal(await page.locator('#help-dialog').evaluate(e=>e.open),true);
@@ -83,7 +83,8 @@ assert.ok(await page.evaluate(()=>Number(localStorage.getItem('bounce-back-best-
 await page.waitForTimeout(100);await page.screenshot({path:'artifacts/summary-desktop.png'});
 await page.getByRole('button',{name:'back home'}).click();await page.reload();
 assert.match(await page.locator('.best-note').innerText(),/personal best/);
-await page.getByRole('button',{name:'Turn sound on'}).click();assert.equal(await page.getByRole('button',{name:'Turn sound off'}).getAttribute('aria-pressed'),'true');
+assert.equal(await page.getByRole('button',{name:'Turn sound off'}).getAttribute('aria-pressed'),'true');
+await page.getByRole('button',{name:'Turn sound off'}).click();await page.getByRole('button',{name:'Turn sound on'}).click();
 // Responsive layout: no horizontal overflow; primary actions stay in the viewport.
 for(const size of [{width:390,height:844},{width:360,height:740},{width:768,height:1024}]){
  await page.setViewportSize(size);await page.reload();await page.evaluate(()=>document.fonts.ready);await page.waitForTimeout(100);

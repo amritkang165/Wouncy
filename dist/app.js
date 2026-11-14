@@ -10,7 +10,6 @@ let best = 0;
 try { best = Number(localStorage.getItem('bounce-back-best-v2')) || 0; } catch {}
 let soundOn = true;
 const audioDirector=new ArcadeAudio();
-try { soundOn = localStorage.getItem('bounce-back-sound') !== 'false'; } catch {}
 const soundButton = $('#sound-button');
 function updateSound() {
  soundButton.setAttribute('aria-pressed',String(soundOn));
@@ -20,7 +19,7 @@ function updateSound() {
 }
 function syncAudio(){audioDirector.setScene({phase:game.phase,bounces:game.totalBounces||0,paused:game.paused,hidden:document.hidden,help:help.open});}
 function playSound(kind) { audioDirector.cue(kind,game.totalBounces||0); }
-soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem('bounce-back-sound',String(soundOn));}catch{}updateSound();audioDirector.enable(soundOn).then(()=>{if(soundOn)playSound('start');});});
+soundButton.addEventListener('click',()=>{soundOn=!soundOn;updateSound();audioDirector.enable(soundOn).then(()=>{if(soundOn)playSound('start');});});
 updateSound();
 const iconArrow='<span aria-hidden="true">↗</span>';
 
@@ -159,7 +158,7 @@ document.addEventListener('keydown',event=>{
  else if(game.phase==='memorize')recall();else if(game.phase==='fail')retry();else if(game.phase==='pass')next();
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();syncAudio();});
-// Unlock only after a real gesture; the saved sound preference always wins.
+// Unlock only after a real gesture; the current sound toggle always wins.
 document.addEventListener('pointerdown',()=>audioDirector.enable(soundOn),{once:true});
 document.addEventListener('keydown',()=>audioDirector.enable(soundOn),{once:true});
 function confetti(){
