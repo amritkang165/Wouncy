@@ -48,7 +48,7 @@ The PRD's Python/Pygame distribution was adapted to a browser game at the user's
 
 ## Contribution workflow
 
-Commit each completed feature or fix separately with a descriptive message. Run the relevant checks before committing. Keep unrelated changes out of feature commits.
+Make exactly one descriptive commit per user-requested edit. Include all changes needed for that edit, run the relevant checks, and push the completed commit to GitHub. Keep unrelated changes out of the commit.
 
 The failure chant is bundled as a short PCM recording synthesized with the macOS Eddy voice. It needs no speech service or network request beyond loading the local asset.
 
