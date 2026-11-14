@@ -9,7 +9,7 @@
 A cozy memory typing game for a very busy little brain.<br>
 Made with sage, clay, second chances, and one mildly sarcastic hedgehog.
 
-**[let’s bounce ↓](#lets-bounce)** · **[meet daven ↓](#meet-daven)** · **[peek under the hood ↓](#under-the-hood)**
+**[play Wouncy on itch.io ↗](https://muneer320.itch.io/wouncy)** · **[let’s bounce ↓](#lets-bounce)** · **[meet daven ↓](#meet-daven)** · **[peek under the hood ↓](#under-the-hood)**
 
 <sub>made by <strong>Team Pheonix</strong> for <a href="https://haven.hackclub.com">Hack Club Haven</a> · plays in your browser</sub>
 
@@ -162,7 +162,7 @@ Browser checks use Playwright with an installed **Google Chrome**. The playable 
 
 **Scoring:** WPM × accuracy (0–1) × streak multiplier, plus earned bonuses. Each clean clear raises the multiplier by 0.5×, capped at 3×. The starred-word-first bonus is 50 points; a clear after two bounces adds 100 points per bounce. Personal bests use the current scoring record, separate from early prototype scores.
 
-**Sharing:** The game bundles an MIT-licensed html-to-image helper. Social buttons open drafts and save the screenshot for attaching; compatible devices can offer native image sharing. Nothing is posted automatically. For an itch.io iframe, set `PUBLIC_GAME_URL` in [`dist/sharing.js`](dist/sharing.js) to the public game page when one is available.
+**Sharing:** The game bundles an MIT-licensed html-to-image helper. Social buttons open drafts and save the screenshot for attaching; compatible devices can offer native image sharing. Nothing is posted automatically. Shared scores link to the public [Wouncy itch.io page](https://muneer320.itch.io/wouncy), including when the game runs inside an itch.io iframe.
 
 **Contributing:** One descriptive commit per requested edit. Run the relevant checks, keep unrelated changes out, and push the completed commit. See [`AGENTS.md`](AGENTS.md).
 

@@ -1,5 +1,5 @@
 // Optional canonical page for iframe hosts that omit their parent page's path.
-export const PUBLIC_GAME_URL='';
+export const PUBLIC_GAME_URL='https://muneer320.itch.io/wouncy';
 export function shareControls(){
  return `<section class="share-panel" aria-label="Share your run"><h3>A comeback worth sharing.</h3><div class="share-buttons"><button class="secondary-button" data-share="native" hidden>share screenshot ↗</button><a data-share="whatsapp" target="_blank" rel="noopener noreferrer">WhatsApp</a><a data-share="x" target="_blank" rel="noopener noreferrer">X</a><a data-share="linkedin" target="_blank" rel="noopener noreferrer">LinkedIn</a><button data-share="download" disabled>save screenshot ↓</button><button data-share="copy">copy score</button></div><p class="share-status" role="status">Preparing your screenshot…</p><p class="share-note">Social buttons open a draft. Attach the saved screenshot, or use your device’s share menu.</p></section>`;
 }
