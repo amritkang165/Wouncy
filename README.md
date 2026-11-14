@@ -1,6 +1,6 @@
-# Wouncy — Bounce Back
+# Wouncy
 
-A browser memory typing arcade for the Haven game jam. Memorize a word sequence, type it back, and bounce back after a miss. Daven is your slightly sarcastic cheerleader.
+Wouncy is a browser memory typing arcade for the Haven game jam, with a matte sage, clay, and paper palette. Memorize a word sequence, type it back, and bounce back after a miss. Daven is your slightly sarcastic cheerleader.
 
 ## Run locally
 

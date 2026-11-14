@@ -25,11 +25,11 @@ const iconArrow='<span aria-hidden="true">↗</span>';
 
 function aside(message) { return `<div class="daven-aside"><img src="assets/daven.webp" alt="Daven, your hedgehog cheerleader"><p><small>Daven says</small>${message}</p></div>`; }
 function menu() {
- return `<section class="menu" aria-label="Welcome to Bounce Back">
-  <div class="menu-banner"><span class="little-label"><span class="label-flower" aria-hidden="true">✳</span> a memory typing arcade</span><span class="menu-note">small brain. big comeback. <span aria-hidden="true">↙</span></span></div>
+ return `<section class="menu" aria-label="Welcome to Wouncy">
+  <div class="menu-banner"><span class="little-label"><span class="label-flower" aria-hidden="true">✳</span> a memory typing arcade</span><span class="menu-note">a little wobbly. always bouncy. <span aria-hidden="true">↙</span></span></div>
   <div class="hero"><div class="hero-copy">
-   <h1 class="title"><span>BOUNCE</span><span class="second-line">BACK<span class="title-spark" aria-hidden="true">✳</span></span></h1>
-   <p class="tagline">A little memory. A little typing.<br>A whole lot of <strong>second chances.</strong></p>
+   <h1 class="title wouncy-title" aria-label="Wouncy"><span>w<span class="wouncy-o">o</span>uncy</span><span class="wordmark-flower" aria-hidden="true">✳</span></h1>
+   <p class="tagline">Give your brain <strong>a little bounce.</strong></p><p class="landing-description">Remember a few words. Type them back.<br>Miss a beat? There’s always a comeback.</p>
    <div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button><p class="keyboard-note">press <kbd>enter ↵</kbd> to jump in</p></div>
   </div><div class="character-scene">
    <div class="character-sun" aria-hidden="true"><div class="sun-ring"></div></div>
@@ -37,7 +37,7 @@ function menu() {
    <span class="speech">you’ve got this.<br><em>probably.</em></span>
    <span class="character-spark" aria-hidden="true">✧</span>
    <span class="floating-word word-one" aria-hidden="true"><small>01</small> remember</span>
-   <span class="floating-word word-two" aria-hidden="true"><small>02</small> bounce</span>
+   <span class="floating-word word-two" aria-hidden="true"><small>02</small> wouncy</span>
    <img class="daven-main" src="assets/daven.webp" alt="Daven, a friendly orange hedgehog">
    <div class="character-shadow" aria-hidden="true"></div>
    <span class="character-spark two" aria-hidden="true">✦</span>

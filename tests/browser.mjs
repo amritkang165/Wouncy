@@ -22,7 +22,9 @@ page.on('pageerror',e=>errors.push(e.message));
 page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+r.url());});
 await page.goto(baseURL);await page.evaluate(()=>document.fonts.ready);
 await page.waitForTimeout(100);await page.screenshot({path:'artifacts/menu-desktop.png'});
-assert.match(await page.getByRole('heading',{level:1}).innerText(),/BOUNCE\s+BACK/);
+assert.equal(await page.getByRole('heading',{level:1,name:'Wouncy'}).count(),1);
+assert.match(await page.title(),/^Wouncy/);
+assert.equal(await page.getByRole('link',{name:'Wouncy home'}).count(),1);
 // Sound starts on for a new player; opting out is persisted.
 await page.getByRole('button',{name:'Turn sound off'}).click();
 await page.getByRole('button',{name:'how to play'}).click();
