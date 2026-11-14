@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#b8c220">
+  <meta name="description" content="A little memory, a little typing, a lot of second chances. Play Bounce Back, a cozy memory arcade game.">
+  <title>Bounce Back — a little game about trying again</title>
+  <link rel="icon" href="assets/daven.webp" type="image/webp">
+  <link rel="preload" href="assets/jua.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="paper" aria-hidden="true"></div>
+  <div class="landscape" aria-hidden="true"><div class="hill hill-back"></div><div class="hill hill-front"></div><img class="bush bush-left" src="assets/faq-bushes-1.webp" alt=""><img class="bush bush-right" src="assets/faq-bushes-2.webp" alt=""><img class="bottom-bushes" src="assets/footer-bottom-bushes.webp" alt=""></div>
+  <header class="topbar">
+    <a href="#" class="brand" aria-label="Bounce Back home"><span class="brand-symbol" aria-hidden="true">↶</span> bounce back<span class="brand-dot">✳</span></a>
+    <nav aria-label="Game controls">
+      <button class="text-button" id="help-button">how to play <span aria-hidden="true">↗</span></button>
+      <span class="nav-divider" aria-hidden="true"></span>
+      <button class="sound-button" id="sound-button" aria-label="Turn sound on" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4V5Zm5 4 5 6m0-6-5 6"/></svg><span>sound off</span></button>
+    </nav>
+  </header>
+  <main id="app" tabindex="-1"></main>
+  <footer class="footer"><span>a little game about trying again.</span><span>made for <a href="https://haven.hackclub.com" target="_blank" rel="noreferrer">haven <span aria-hidden="true">↗</span></a> <span class="footer-star" aria-hidden="true">✳</span> 2026</span></footer>
+  <dialog id="help-dialog" aria-labelledby="help-title">
+    <button class="close-button" id="close-help" aria-label="Close instructions">×</button>
+    <span class="eyebrow">a quick field guide</span><h2 id="help-title">Small brain.<br>Big comeback.</h2>
+    <ol class="help-steps"><li><span>01</span><div><h3>Take a little look.</h3><p>Remember the words, in order. You start with 15 seconds. Press Enter when you’re ready.</p></div></li><li><span>02</span><div><h3>Type them back.</h3><p>The words disappear. Type each word and press Space or Enter to lock it in. Case doesn’t matter.</p></div></li><li><span>03</span><div><h3>Miss? Bounce back.</h3><p>Same words, another chance. Your first retry adds 5 seconds; your second adds 3. After that, no extra time and the clock runs 25% faster.</p></div></li></ol>
+    <p class="help-note">Clean clears grow your multiplier up to 3×. Clear after 2+ bounces for a comeback bonus. Escape pauses your run.</p>
+    <button class="primary-button" id="got-it">got it. let’s bounce <span>↗</span></button>
+  </dialog>
+  <div id="particles" aria-hidden="true"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
