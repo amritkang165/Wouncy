@@ -120,7 +120,7 @@ for(let bounce=1;bounce<=3;bounce++){
    await page.locator('#pause-button').click();assert.equal(await page.locator('#screen-damage').innerHTML(),fractures);
    assert.equal(await page.evaluate(()=>window.activeLoops.size),1,'pause must keep the background music playing');
    const notesAtPause=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);
-   assert.equal(await page.evaluate(()=>window.noteStarts),notesAtPause,'pausing must retain the same background loop');
+   assert.equal(await page.evaluate(()=>window.noteStarts),notesAtPause,'the calm pause loop must not repeatedly restart');
    await page.locator('#resume-button').click();
   }
  }

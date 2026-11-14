@@ -13,6 +13,9 @@ https://opengameart.org/sites/default/files/singularity_action.wav
 Both full-length loops are retained. Converted to 96 kbps stereo MP3.
 Menu normalized to -20 LUFS; gameplay mix normalized to -18 LUFS;
 normalization targets a -2 dBTP ceiling and 9 LU loudness range.
+Playback matches the calm track to the gameplay mix with a fixed +2.17 dB
+trim. Music uses a steady bus level without bounce distortion or pause boosts;
+menu/play transitions crossfade at the same position in the full-length loops.
 License record: audio/Singularity-CC0.txt
 
 SOUND EFFECTS

@@ -11,7 +11,7 @@ test('the bundled spoken chant stays below 0.5 seconds at every bounce pitch',as
  assert.ok(dataLength>0);
  for(const rate of AUDIO_CONFIG.chantRates)assert.ok(dataLength/byteRate/rate<.5);
 });
-test('music and voice distortion escalates and remains finite',()=>{
+test('bounce voice distortion escalates and remains finite',()=>{
  const levels=[0,1,2,3].map(distortionCurve);
  assert.ok(levels.every(curve=>[...curve].every(Number.isFinite)));
  const index=650;assert.ok(levels[0][index]<levels[1][index]);assert.ok(levels[1][index]<levels[2][index]);assert.ok(levels[2][index]<levels[3][index]);

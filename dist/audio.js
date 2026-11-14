@@ -1,4 +1,4 @@
-export const AUDIO_CONFIG=Object.freeze({chantRates:[.98,.9,.84],maxSting:.49,musicVolume:.18});
+export const AUDIO_CONFIG=Object.freeze({chantRates:[.98,.9,.84],maxSting:.49,musicVolume:.6,menuLoudnessGain:1.284,musicFade:.2});
 const FILES={menu:'singularity-calm.mp3',game:'singularity-focus.mp3',start:'start.wav',lock:'lock.wav',recall:'recall.wav',pass:'clear.wav',retry:'retry.wav',finish:'finish.wav',voice:'bounce-back.wav'};
 export function distortionCurve(bounces){
  const amount=[0,9,28,48][Math.min(3,Math.max(0,bounces))];
@@ -8,7 +8,7 @@ export function distortionCurve(bounces){
 }
 export class ArcadeAudio {
  constructor(){
-  this.enabled=false;this.scene={phase:'menu',bounces:0,paused:false};this.sources=new Set();this.buffers={};this.revision=0;this.offset=0;
+  this.enabled=false;this.scene={phase:'menu',bounces:0,paused:false};this.sources=new Set();this.musicTracks=new Set();this.buffers={};this.revision=0;this.offset=0;
   this.bytes=Object.fromEntries(Object.entries(FILES).map(([key,file])=>[key,fetch(new URL('./assets/audio/'+file,import.meta.url)).then(r=>r.ok?r.arrayBuffer():null).catch(()=>null)]));
  }
  async ready(){
@@ -17,9 +17,7 @@ export class ArcadeAudio {
    this.context=new Context();
    this.master=this.context.createGain();this.master.gain.value=this.enabled?.65:0;this.master.connect(this.context.destination);
    this.music=this.context.createGain();this.music.gain.value=AUDIO_CONFIG.musicVolume;
-   this.warp=this.context.createWaveShaper();this.warp.oversample='2x';
-   this.filter=this.context.createBiquadFilter();this.filter.type='lowpass';
-   this.music.connect(this.warp);this.warp.connect(this.filter);this.filter.connect(this.master);
+   this.music.connect(this.master);
    // Each file can fail independently without preventing play.
    this.loading=Object.fromEntries(Object.entries(this.bytes).map(([key,promise])=>[key,(async()=>{
     try{
@@ -40,25 +38,37 @@ export class ArcadeAudio {
   const changed=this.scene.phase!==scene.phase||this.scene.paused!==scene.paused||this.scene.hidden!==scene.hidden||this.scene.help!==scene.help;
   if(changed){this.revision++;this.stopSources();}
   this.scene={...scene};if(!this.context)return;
-  const level=['menu','summary'].includes(scene.phase)?0:Math.min(3,scene.bounces||0),now=this.context.currentTime;
-  this.warp.curve=distortionCurve(level);
-  this.filter.frequency.setTargetAtTime([7500,4500,2800,1800][level],now,.045);
-  const key=['menu','summary'].includes(scene.phase)?'menu':'game';
-  if(this.musicKey!==key){this.stopMusic();this.offset=0;this.musicKey=key;}
+  const now=this.context.currentTime;
+  this.musicKey=['memorize','type'].includes(scene.phase)&&!scene.paused&&!scene.help?'game':'menu';
   const playing=this.enabled&&!scene.hidden;
   this.music.gain.setTargetAtTime(playing?AUDIO_CONFIG.musicVolume:0,now,.02);
-  if(playing&&!this.musicSource)this.startMusic();else if(!playing)this.stopMusic();
+  if(playing&&(!this.musicSource||this.sourceKey!==this.musicKey))this.startMusic();else if(!playing)this.stopMusic();
  }
  startMusic(){
   const buffer=this.buffers[this.musicKey];if(!buffer)return;
-  const source=this.context.createBufferSource();source.buffer=buffer;source.loop=true;source.connect(this.music);
-  this.musicSource=source;this.musicStarted=this.context.currentTime;
-  source.addEventListener('ended',()=>source.disconnect(),{once:true});source.start(0,this.offset%buffer.duration);
+  const now=this.context.currentTime,old=this.musicSource;
+  const offset=old?this.offset+now-this.musicStarted:this.offset;
+  const source=this.context.createBufferSource(),gain=this.context.createGain();
+  source.buffer=buffer;source.loop=true;source.connect(gain);gain.connect(this.music);
+  // The calm file measures 2.17 LU quieter. Match its loudness without
+  // changing the music bus on pause, help, or bounce count.
+  const target=this.musicKey==='menu'?AUDIO_CONFIG.menuLoudnessGain:1;
+  gain.gain.setValueAtTime(old?0:target,now);
+  if(old){
+   gain.gain.linearRampToValueAtTime(target,now+AUDIO_CONFIG.musicFade);
+   this.musicGain.gain.cancelScheduledValues(now);
+   this.musicGain.gain.setValueAtTime(this.musicGain.gain.value,now);
+   this.musicGain.gain.linearRampToValueAtTime(0,now+AUDIO_CONFIG.musicFade);
+   old.stop(now+AUDIO_CONFIG.musicFade);
+  }
+  this.musicSource=source;this.musicGain=gain;this.sourceKey=this.musicKey;this.musicStarted=now;this.offset=offset%buffer.duration;
+  this.musicTracks.add(source);
+  source.addEventListener('ended',()=>{source.disconnect();gain.disconnect();this.musicTracks.delete(source);},{once:true});source.start(now,this.offset);
  }
  stopMusic(){
   if(!this.musicSource)return;
   this.offset=(this.offset+this.context.currentTime-this.musicStarted)%this.musicSource.buffer.duration;
-  this.musicSource.stop();this.musicSource=null;
+  for(const source of this.musicTracks)source.stop();this.musicSource=null;
  }
  track(source){this.sources.add(source);source.addEventListener('ended',()=>{this.sources.delete(source);source.disconnect();},{once:true});return source;}
  stopSources(){for(const source of this.sources){try{source.stop();}catch{}}this.sources.clear();}
