@@ -23,6 +23,15 @@ Made with sage, clay, second chances, and one mildly sarcastic hedgehog.
 
 ## a tiny game. a surprisingly stubborn brain.
 
+Play solo, enter the server-scored **ranked climb** or **daily challenge**, or race
+a friend in **Daven Duel**. Create a room, share its six-character code, and both
+press ready. First to clear five levels wins. Duel timers keep running through
+help and hidden tabs; reconnect within ten seconds after a disconnect. Both
+players can request a rematch.
+
+Online guest names and scores are public, and names are unverified. Ordinary solo
+play works offline. Backend setup is documented in [backend/README.md](backend/README.md).
+
 Some words show up. You give them a good look. They disappear.
 
 Now it’s just you, your keyboard, and the very confident feeling that one of those words was definitely *mushroom*.

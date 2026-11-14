@@ -9,10 +9,13 @@ npm install
 npm run dev:backend
 ```
 
-`GET /health` reports the shared rules version. `POST /rooms` returns a six-character
-room code. Two clients can connect to `/rooms/CODE/ws`, receive presence updates,
-and submit `{ "type": "ready", "ready": true }`. Connections and rooms are bounded;
-the Worker checks browser origins and rate-limits requests.
+`GET /health` reports the shared rules version. Authenticated `POST /rooms` returns
+a six-character private room code. `/rooms/CODE/join` issues a one-use, short-lived
+WebSocket ticket. Two guests ready up, then race to five clears using the same
+server-seeded words. Sequenced actions are duplicate-safe. A disconnect has a
+10-second reconnect grace period; matches support results and mutual rematch.
+Duel clocks keep running through help or hidden tabs. Rooms expire after 30 minutes.
+The Worker checks browser origins and rate-limits HTTP and WebSocket traffic.
 
 Guest sessions use hashed bearer tokens (no third-party cookies). `/runs` creates
 server-owned solo or daily runs; sequenced actions are checked and scored by the

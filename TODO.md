@@ -2,11 +2,11 @@
 
 - [x] Gentler, staggered difficulty progression.
 - [x] Seeded shared rules, versioned runs, and separate lives/mistake tracking.
-- [ ] Prove online room connectivity from the itch.io iframe in two browsers. Local transport verified and Cloudflare deployed; final iframe proof accompanies multiplayer.
+- [x] Prove live room connectivity from the itch.io iframe with two independent players. Verified shared words, a scored clear, both results, and production leaderboard publication.
 - [x] Guest sessions and server-validated leaderboard.
 - [ ] Peek, Echo, capped inventory, and rare checkpoint rewards.
 - [ ] Earned, once-per-run memory rescue.
-- [ ] Daven Duel: room codes, five-level race, reconnect, results, rematch.
+- [x] Daven Duel: room codes, five-level race, reconnect, results, rematch.
 - [ ] Occasional fog and decoy blockers, with kinder retries.
 - [ ] Anchor, only after the core features are working.
 

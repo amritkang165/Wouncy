@@ -7,6 +7,7 @@ import { createViewportFitter } from './viewport.js';
 import { mountMovingWords } from './movement.js';
 import { mountScreenMotion } from './animations.js';
 import { api, signIn, guestName, OnlineGame } from './online.js';
+import { DuelGame } from './duel.js';
 const $ = (selector) => document.querySelector(selector);
 const app = $('#app');
 let game = new Game();
@@ -46,7 +47,7 @@ function menu() {
    <h1 class="title wouncy-title" aria-label="Wouncy"><span class="wordmark-text"><span class="wordmark-letter">w</span><span class="wordmark-letter wouncy-o">o</span><span class="wordmark-letter">u</span><span class="wordmark-letter">n</span><span class="wordmark-letter">c</span><span class="wordmark-letter">y</span></span><span class="wordmark-flower" aria-hidden="true">✳</span></h1>
    <p class="tagline">Give your brain <strong>a little bounce.</strong></p>
    <div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button>${best?personalBest("best-note"):legacyBest?personalBest("best-note",false,legacyBest,"earlier best"):'<p class="keyboard-note">press <kbd>enter ↵</kbd> to jump in</p>'}</div>
-   <div class="online-options" aria-label="Online play"><button id="ranked-button">ranked climb ↗</button><button id="daily-button">daily challenge ✳</button><button id="leaderboard-button">leaderboard ★</button></div>
+   <div class="online-options" aria-label="Online play"><button id="duel-button">Daven Duel · 2 players ↗</button><button id="ranked-button">ranked climb ↗</button><button id="daily-button">daily challenge ✳</button><button id="leaderboard-button">leaderboard ★</button></div>
   </div><div class="character-scene">
    <span class="speech">you’ve got this.<br><em>probably.</em></span>
    <span class="character-spark" aria-hidden="true">✧</span>
@@ -69,6 +70,8 @@ function menu() {
 function scoreboard() {
  return `<div class="scoreboard" aria-label="Run statistics"><div class="stat"><span class="stat-label">level</span><span class="stat-value">${String(game.level).padStart(2,'0')}</span></div><div class="stat"><span class="stat-label">score</span><span class="stat-value">${game.score.toLocaleString()}</span></div><div class="stat"><span class="stat-label">multiplier</span><span class="stat-value">${game.multiplier}<small>×</small></span></div><div class="stat"><span class="stat-label">bounces</span><span class="stat-value">${game.totalBounces}<small> / ${game.bounceBudget}</small></span></div></div>${game.totalBounces?`<div class="bounce-status" role="status"><span class="bounce-tier ${game.totalBounces===1?'current':''}">01 · +5s · cracked</span><span class="bounce-tier ${game.totalBounces===2?'current':''}">02 · +3s · distorted</span><span class="bounce-tier ${game.gameOver?'current':''}">03 · GAME OVER</span></div>`:''}`;
 }
+function duelStatus(){return `<div class="duel-status" aria-label="Duel progress">${game.players.map(p=>`<span><strong>${safe(p.name)}${p.id===game.playerId?' (you)':''}</strong> ${p.cleared} / 5${!p.connected?' · reconnecting':''}</span>`).join('<span aria-hidden="true">vs</span>')}</div>`;}
+function duelLobby(){return `<section class="game-shell"><div class="game-board result-board"><div class="phase-label">Daven Duel · first to five clears</div>${mascot('welcome','daven-summary')}<h1 class="game-title">A little friendly rivalry.</h1><p>Share this room code with a friend.</p><div class="room-code" aria-label="Room code">${game.code}</div>${duelStatus()}<p class="game-description">Same words. Your own pace. Three bounces each.<br>Both players press ready to begin. Timers keep running in a duel.</p><p role="status">${game.players.length<2?'Waiting for your friend…':game.players.find(p=>p.id===game.playerId)?.ready?'You’re ready. Waiting for your friend…':'Your friend is here. Ready when you are.'}</p><div class="summary-actions"><button class="primary-button" id="duel-ready" ${game.players.find(p=>p.id===game.playerId)?.ready?'disabled':''}>I’m ready ↗</button><button class="text-button" id="duel-leave">leave room</button></div></div></section>`;}
 function timer() { return `<div class="timer-caption"><span>${game.phase==='memorize'?'A MOMENT TO REMEMBER':'TIME TO TYPE IT BACK'}</span><span>${game.livesRemaining} bounce${game.livesRemaining===1?'':'s'} left</span></div><div class="timer-row" role="timer" aria-label="Time remaining"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div><span class="timer-number" id="timer-number"></span></div>`; }
 function gameScreen() {
  const phase=game.phase;
@@ -88,7 +91,7 @@ function gameScreen() {
   content=`<div class="result-icon" aria-hidden="true">↶</div><div class="phase-label">a detour, not a dead end</div><h1 class="game-title">BOUNCE BACK.</h1><p class="result-subtitle">${game.reason}<br>Let’s give those words another go.</p><div class="result-words" aria-label="The words to remember">${game.words.map((w,i)=>`<span class="result-word ${!game.locked.includes(w)?'missed-word':''}">${w}</span>`).join('')}</div><button class="primary-button" id="retry-button">one more bounce <span aria-hidden="true">↶</span></button><div class="bounce-note">+${bonus} seconds to memorize · ${game.livesRemaining} bounce${game.livesRemaining===1?'':'s'} left</div><div class="board-hint">press Enter to try again</div>`;
   message=game.bounces===1?'That was just a warm-up. Obviously.':game.bounces===2?'Third time’s the charm. That’s a real thing, right?':'At this point, I’m emotionally invested.';
  }
- return `<section class="game-shell bounce-${Math.min(game.bounces,3)}"><div class="game-topline"><span class="run-label"><span class="live-dot"></span>${game.ranked?(game.mode==='daily'?'daily challenge · UTC':'ranked climb'):'continuous climb'}</span><div class="pause-controls">${['memorize','type'].includes(phase)?'<button id="pause-button" aria-label="Pause game">Ⅱ pause</button>':''}<button id="finish-button">finish run ↗</button></div></div>${scoreboard()}<div class="game-board ${phase==='fail'?'result-board fail-board':phase==='pass'?'result-board':''}">${content}${game.paused?pauseMarkup():''}</div>${aside(message,game.paused?"rest":({memorize:"think",type:"focus",fail:"bounce",pass:"celebrate"}[phase]))}</section>`;
+ return `<section class="game-shell bounce-${Math.min(game.bounces,3)}"><div class="game-topline"><span class="run-label"><span class="live-dot"></span>${game.duel?'Daven Duel · '+game.code:game.ranked?(game.mode==='daily'?'daily challenge · UTC':'ranked climb'):'continuous climb'}</span><div class="pause-controls">${['memorize','type'].includes(phase)?'<button id="pause-button" aria-label="Pause game">Ⅱ pause</button>':''}<button id="finish-button">finish run ↗</button></div></div>${scoreboard()}<div class="game-board ${phase==='fail'?'result-board fail-board':phase==='pass'?'result-board':''}">${content}${game.paused?pauseMarkup():''}</div>${aside(message,game.paused?"rest":({memorize:"think",type:"focus",fail:"bounce",pass:"celebrate"}[phase]))}</section>`;
 }
 function slots(){return game.words.map((_,i)=>`<span class="recall-slot ${i<game.index?'locked':i===game.index?'active':''} ${i<game.index&&game.locked[i]===game.specialWord?'bonus-locked':''}">${i<game.index?game.locked[i]+' <span class="tick" aria-hidden="true">✓</span>':i===game.index?'?':'·'}</span>`).join('');}
 function pauseMarkup(){return `<div class="pause-panel" role="region" aria-label="Game paused">${mascot("rest")}<h2>A little breather.</h2><p>Your words and your time will be right here.</p><button class="primary-button" id="resume-button">keep bouncing <span>↗</span></button><button class="text-button" id="paused-finish">finish this run</button></div>`;}
@@ -110,7 +113,19 @@ function render(force=false){
  document.body.classList.toggle('impact',game.phase==='fail'||(game.phase==='summary'&&game.gameOver));
  screenMotion.dispose();
  disposeCompanion();disposeCompanion=()=>{};disposeSharing();disposeSharing=()=>{};disposeMovement();disposeMovement=()=>{};
- app.innerHTML='<div class="viewport-content">'+(game.phase==='menu'?menu():game.phase==='summary'?summary():gameScreen())+'</div>';
+ app.innerHTML='<div class="viewport-content">'+(game.phase==='menu'?menu():game.phase==='lobby'?duelLobby():game.phase==='summary'?summary():gameScreen())+'</div>';
+ if(game.duel&&game.phase!=='lobby'){
+  const board=$('.game-board');board.insertAdjacentHTML('afterbegin',duelStatus());
+  $('#pause-button')?.remove();
+  if(game.phase==='summary'){
+   const winner=game.players.find(p=>p.id===game.result?.winner);
+   $('.summary-heading h2').textContent=game.result?.winner===game.playerId?'You won the duel!':'A good little rivalry.';
+   $('.summary-heading .phase-label').textContent=winner?safe(winner.name)+' wins · '+game.result.reason:'Duel finished';
+   $('.summary-heading .game-description').textContent='First to five clean-or-comeback clears. Ready for a rematch?';
+   $('#restart-button').textContent=game.players.find(p=>p.id===game.playerId)?.ready?'Waiting for rematch…':'rematch ↶';
+   $('#restart-button').disabled=!!game.players.find(p=>p.id===game.playerId)?.ready;
+  }
+ }
  fitScreen(app.firstElementChild);
  screenMotion=mountScreenMotion(app,{phase:game.phase,paused:game.paused,gameOver:game.gameOver,score:game.score||0,previousScore:paintedScore});paintedScore=game.score||0;
  if(game.phase==='summary'&&game.gameOver)disposeSharing=mountSharing($('.summary'),{score:game.score,level:game.level,cleared:game.history.length,ready:screenMotion.ready});
@@ -121,13 +136,16 @@ function render(force=false){
  if(game.paused&&!help.open)$('#resume-button')?.focus({preventScroll:true});
  $('#start-button')?.addEventListener('click',start);
  $('#ranked-button')?.addEventListener('click',()=>onlineMenu('solo'));
+ $('#duel-button')?.addEventListener('click',()=>onlineMenu('duel'));
+ $('#duel-ready')?.addEventListener('click',()=>game.ready());
+ $('#duel-leave')?.addEventListener('click',leaveGame);
  $('#daily-button')?.addEventListener('click',()=>onlineMenu('daily'));
  $('#leaderboard-button')?.addEventListener('click',()=>onlineMenu('board'));
  $('#restart-button')?.addEventListener('click',restart);
  $('#ready-button')?.addEventListener('click',recall);
  $('#retry-button')?.addEventListener('click',retry);
  $('#next-button')?.addEventListener('click',next);
- $('#home-button')?.addEventListener('click',()=>{game=new Game();showConnection();render();});
+ $('#home-button')?.addEventListener('click',leaveGame);
  $('#finish-button')?.addEventListener('click',finish);
  $('#paused-finish')?.addEventListener('click',finish);
  $('#pause-button')?.addEventListener('click',pause);
@@ -143,8 +161,9 @@ function render(force=false){
  }
  updateTimer();
 }
-function start(){audioDirector.enable(soundOn);movementPositions=[];fieldValue='';game=new Game();game.start();render();playSound('start');}
-function restart(){game.ranked?onlineMenu(game.mode):start();}
+function leaveGame(){game.close?.();game=new Game();showConnection();render(true);}
+function start(){game.close?.();audioDirector.enable(soundOn);movementPositions=[];fieldValue='';game=new Game();game.start();showConnection();render();playSound('start');}
+function restart(){game.duel?game.rematch():game.ranked?onlineMenu(game.mode):start();}
 function recall(){game.recall();fieldValue='';render();}
 function retry(){movementPositions=[];fieldValue='';game.retry();render();playSound('retry');}
 function next(){movementPositions=[];fieldValue='';game.next();render();playSound('start');}
@@ -167,6 +186,7 @@ function updateTimer(){
 }
 function openHelp(){
  returnFocus=document.activeElement;helpPaused=game.pause();render();help.showModal();syncAudio();
+ help.querySelector('.help-note').textContent=game.duel?'Duel timers keep running while these instructions are open. Clear five levels before your friend. A disconnect has 10 seconds to reconnect.':'Clean clears grow your multiplier up to 3×. Clear after 2+ bounces for a comeback bonus. Escape pauses your run.';
 }
 function closeHelp(){help.close();}
 $('#help-button').addEventListener('click',openHelp);
@@ -174,7 +194,7 @@ $('#close-help').addEventListener('click',closeHelp);
 $('#got-it').addEventListener('click',closeHelp);
 help.addEventListener('close',()=>{if(helpPaused){game.resume();render();}helpPaused=false;syncAudio();if(returnFocus?.isConnected)returnFocus.focus();else if(game.phase==='type')$('#word-input')?.focus();});
 help.addEventListener('click',event=>{if(event.target===help){const rect=help.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)help.close();}});
-$('.brand').addEventListener('click',event=>{event.preventDefault();if(!['menu','summary'].includes(game.phase))finish();else{game.phase='menu';render();}});
+$('.brand').addEventListener('click',event=>{event.preventDefault();if(game.phase==='lobby'||['menu','summary'].includes(game.phase))leaveGame();else finish();});
 document.addEventListener('keydown',event=>{
  if(event.isComposing||help.open||onlineDialog.open||event.repeat)return;
  if(event.key==='Escape'&&['memorize','type'].includes(game.phase)){event.preventDefault();game.paused?resume():pause();return;}
@@ -182,7 +202,7 @@ document.addEventListener('keydown',event=>{
  event.preventDefault();
  if(game.paused){resume();return;}
  if(game.phase==='menu')start();else if(game.phase==='summary')restart();
- else if(game.phase==='memorize')recall();else if(game.phase==='fail')retry();else if(game.phase==='pass')next();
+ else if(game.phase==='lobby')game.ready();else if(game.phase==='memorize')recall();else if(game.phase==='fail')retry();else if(game.phase==='pass')next();
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();syncAudio();});
 // Unlock only after a real gesture; the current sound toggle always wins.
@@ -206,7 +226,7 @@ function onlinePanel(content){onlineDialog.innerHTML='<button class="online-clos
 async function onlineMenu(mode){
  ++onlineGeneration;
  if(mode==='board'){await showBoard('solo');return;}
- onlinePanel(`<h2>${mode==='daily'?'One day. Same words.':'A little friendly competition.'}</h2><p>${mode==='daily'?'Everyone gets the same words today, resetting at midnight UTC.':'Climb as far as you can. Your best server-scored run joins the board.'}</p><form id="guest-form"><label for="guest-name">Your public guest name</label><input id="guest-name" maxlength="20" minlength="2" required value="${safe(guestName())}" autocomplete="nickname"><p class="online-notice" role="status"></p><button class="primary-button">play ${mode==='daily'?'daily':'ranked'} ↗</button></form><p><small>No account needed. Your name and score are public. Solo play stays available offline.</small></p>`);
+ onlinePanel(`<h2>${mode==='duel'?'Daven Duel.':mode==='daily'?'One day. Same words.':'A little friendly competition.'}</h2><p>${mode==='duel'?'Race a friend to five cleared levels. Create a private room, or enter their code.':mode==='daily'?'Everyone gets the same words today, resetting at midnight UTC.':'Climb as far as you can. Your best server-scored run joins the board.'}</p><form id="guest-form"><label for="guest-name">Your public guest name</label><input id="guest-name" maxlength="20" minlength="2" required value="${safe(guestName())}" autocomplete="nickname">${mode==='duel'?'<label for="room-input">Room code (leave empty to create)</label><input id="room-input" maxlength="6" pattern="[A-HJ-NP-Za-hj-np-z2-9]{6}" autocomplete="off" placeholder="ABC234">':''}<p class="online-notice" role="status"></p><button class="primary-button">${mode==='duel'?'create / join room':'play '+(mode==='daily'?'daily':'ranked')} ↗</button></form><p><small>No account needed. Your name and score are public. Solo play stays available offline.</small></p>`);
  onlineDialog.querySelector('form').onsubmit=async event=>{
   event.preventDefault();const button=onlineDialog.querySelector('.primary-button'),notice=onlineDialog.querySelector('.online-notice');button.disabled=true;notice.textContent='Connecting…';
   const generation=++onlineGeneration;
@@ -214,6 +234,11 @@ async function onlineMenu(mode){
    const active=()=>generation===onlineGeneration&&onlineDialog.open;
    const name=onlineDialog.querySelector('input').value.trim();if(name!==guestName())await signIn(name,active);else await api('/session');
    if(!active())return;
+   if(mode==='duel'){
+    const entered=onlineDialog.querySelector('#room-input').value.trim().toUpperCase(),code=entered||(await api('/rooms',{})).code;
+    if(!active())return;
+    const remote=new DuelGame(code,{change:()=>{if(game===remote){render(true);showConnection();}}});game=remote;fieldValue='';movementPositions=[];onlineDialog.close();audioDirector.enable(soundOn);render(true);remote.connect();return;
+   }
    const result=await api('/runs',{mode});
    if(generation!==onlineGeneration||!onlineDialog.open)return;
    let remote;remote=new OnlineGame(result,{change:()=>{if(game===remote){render(true);showConnection();}},error:()=>{if(game===remote)showConnection();}});game=remote;movementPositions=[];fieldValue='';onlineDialog.close();audioDirector.enable(soundOn);render(true);playSound('start');
@@ -232,6 +257,6 @@ async function showBoard(mode){
 function showConnection(){
  let notice=$('.connection-notice');if(!game.connectionError){notice?.remove();return;}
  if(!notice){notice=document.createElement('div');notice.className='connection-notice';notice.setAttribute('role','status');document.body.append(notice);}
- notice.innerHTML='Connection interrupted. Reconnecting… <button type="button">leave online run</button>';notice.querySelector('button').onclick=()=>{game=new Game();notice.remove();render(true);};
+ notice.innerHTML='<span></span> <button type="button">leave online run</button>';notice.querySelector('span').textContent=game.connectionError;notice.querySelector('button').onclick=leaveGame;
 }
 render();requestAnimationFrame(loop);
