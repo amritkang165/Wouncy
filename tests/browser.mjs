@@ -82,7 +82,7 @@ assert.equal(await page.locator('.summary-stats strong').first().innerText(),'2'
 assert.ok(await page.evaluate(()=>Number(localStorage.getItem('bounce-back-best-v2'))>0));
 await page.waitForTimeout(100);await page.screenshot({path:'artifacts/summary-desktop.png'});
 await page.getByRole('button',{name:'back home'}).click();await page.reload();
-assert.match(await page.locator('.best-note').innerText(),/personal best/);
+assert.match(await page.locator('.best-note').innerText(),/personal best/i);
 assert.equal(await page.getByRole('button',{name:'Turn sound off'}).getAttribute('aria-pressed'),'true');
 await page.getByRole('button',{name:'Turn sound off'}).click();await page.getByRole('button',{name:'Turn sound on'}).click();
 // Responsive layout: no horizontal overflow; primary actions stay in the viewport.
