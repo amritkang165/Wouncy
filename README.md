@@ -42,7 +42,7 @@ Browser verification uses Playwright with an installed Google Chrome, or a Playw
 - Daven character: the exact owner-supplied `daven.webp`, plus original `excited-daven.webp` and `hedgehog.webp` from [Hack Club Haven](https://haven.hackclub.com). CSS provides motion and small props; the character images are unchanged. No AI image generation was used.
 - Background music: [“Singularity” by vitalezzz](https://opengameart.org/content/singularity-0), CC0. The menu uses its calm version; gameplay blends 60% calm with 40% action for a steady rhythmic pulse over the synth bed. Both retain the full loop and are normalized to comfortable background levels.
 - Sound effects: Kenney’s [UI Audio](https://kenney.nl/assets/ui-audio) and [Music Jingles](https://kenney.nl/assets/music-jingles), CC0. Selected samples are converted to WAV, with short fades on trimmed jingles.
-- Exact asset mappings, modifications, source links, and included license files are listed in [asset credits](dist/assets/CREDITS.txt), also linked in the game footer.
+- Exact asset mappings, modifications, source links, and included license files are listed in [asset credits](dist/assets/CREDITS.txt).
 - Landscape art: existing imagery served by [Hack Club Haven](https://haven.hackclub.com), reused as a visual reference for this prototype. No AI image generation was used. Asset reuse permission should be confirmed before distributing a jam submission.
 - Jua typeface: Woowahan Brothers, SIL Open Font License. Bundled from Google Fonts; see `dist/assets/OFL.txt`.
 
