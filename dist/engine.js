@@ -10,8 +10,13 @@ export class Game {
  start() { Object.assign(this,{level:1,score:0,streak:0,multiplier:1,totalBounces:0,bestComeback:0,history:[],paused:false,gameOver:false}); this.newLevel(); }
  newLevel() {
   const d=difficulty(this.level); this.settings=d; this.bounces=0; this.bonusTime=0;
-  const pool=[...new Set(WORDS[d.pool])]; this.words=[];
-  for(let i=0;i<d.count;i++) this.words.push(pool.splice(Math.floor(this.random()*pool.length),1)[0]);
+  this.words=[];let hardWords=0;
+  for(let i=0;i<d.count;i++){
+   const roll=this.random();let pool=roll<d.poolWeights.hard?'hard':roll<d.poolWeights.hard+d.poolWeights.medium?'medium':'easy';
+   if(pool==='hard'&&hardWords>=d.maxHardWords)pool='medium';
+   const available=[...new Set(WORDS[pool])].filter(w=>!this.words.includes(w)&&w.length<=d.maxWordLength);
+   this.words.push(available[Math.floor(this.random()*available.length)]);if(pool==='hard')hardWords++;
+  }
   this.specialWord=this.words[Math.floor(this.random()*this.words.length)];
   this.beginMemorize();
  }
