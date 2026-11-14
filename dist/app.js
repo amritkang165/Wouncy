@@ -40,7 +40,7 @@ function menu() {
   <div class="menu-banner"><span class="little-label"><span class="label-flower" aria-hidden="true">✳</span> a memory typing arcade</span><label class="motion-option"><input id="moving-words" type="checkbox" ${movingWords?'checked':''}><span>moving words<small>from level 4 · respects reduced motion</small></span></label></div>
   <div class="hero"><div class="hero-copy">
    <h1 class="title wouncy-title" aria-label="Wouncy"><span>w<span class="wouncy-o">o</span>uncy</span><span class="wordmark-flower" aria-hidden="true">✳</span></h1>
-   <p class="tagline">Give your brain <strong>a little bounce.</strong></p><p class="landing-description">Remember a few words. Type them back.<br>Three bounces. Make your comeback count.</p>
+   <p class="tagline">Give your brain <strong>a little bounce.</strong></p>
    <div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button>${best?personalBest("best-note"):'<p class="keyboard-note">press <kbd>enter ↵</kbd> to jump in</p>'}</div>
   </div><div class="character-scene">
    <span class="speech">you’ve got this.<br><em>probably.</em></span>
