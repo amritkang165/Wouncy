@@ -25,17 +25,43 @@ const iconArrow='<span aria-hidden="true">↗</span>';
 
 function aside(message) { return `<div class="daven-aside"><img src="assets/daven.webp" alt="Daven, your hedgehog cheerleader"><p><small>Daven says</small>${message}</p></div>`; }
 function menu() {
- return `<section class="menu" aria-label="Welcome to Bounce Back"><div class="little-label">a memory typing arcade</div><div class="hero"><div class="hero-copy"><h1 class="title"><span>BOUNCE</span><span class="second-line">BACK</span><i class="title-spark" aria-hidden="true">✳</i></h1><p class="tagline">A little memory. A little typing.<br>A whole lot of <strong>second chances.</strong></p></div><div class="character-scene"><span class="character-spark" aria-hidden="true">✧</span><span class="speech">you’ve got this.<br>probably.<span></span></span><img class="daven-main" src="assets/daven.webp" alt="Daven, a friendly orange hedgehog"><div class="character-shadow"></div><span class="character-spark two" aria-hidden="true">✦</span></div></div><div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button><p class="keyboard-note">or press <kbd>enter ↵</kbd> to jump in</p></div><div class="steps-strip" aria-label="How it works"><div class="mini-step"><span class="step-number">1</span><div><strong>memorize.</strong><small>give those words a good look.</small></div></div><span class="step-arrow" aria-hidden="true">→</span><div class="mini-step"><span class="step-number">2</span><div><strong>type it back.</strong><small>same words. same order.</small></div></div><span class="step-arrow" aria-hidden="true">↶</span><div class="mini-step"><span class="step-number">3</span><div><strong>miss? bounce back.</strong><small>try again with a little more time.</small></div></div></div><p class="best-note">${best?'your personal best: '+best.toLocaleString()+' ✦':'no game overs. just comebacks.'}</p></section>`;
+ return `<section class="menu" aria-label="Welcome to Bounce Back">
+  <div class="menu-banner"><span class="little-label"><span class="label-flower" aria-hidden="true">✳</span> a memory typing arcade</span><span class="menu-note">small brain. big comeback. <span aria-hidden="true">↙</span></span></div>
+  <div class="hero"><div class="hero-copy">
+   <h1 class="title"><span>BOUNCE</span><span class="second-line">BACK<span class="title-spark" aria-hidden="true">✳</span></span></h1>
+   <p class="tagline">A little memory. A little typing.<br>A whole lot of <strong>second chances.</strong></p>
+   <div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button><p class="keyboard-note">press <kbd>enter ↵</kbd> to jump in</p></div>
+  </div><div class="character-scene">
+   <div class="character-sun" aria-hidden="true"><div class="sun-ring"></div></div>
+   <svg class="character-trail" viewBox="0 0 350 350" aria-hidden="true"><path d="M57 266C-6 211 12 90 99 69M267 68c75 43 84 157 25 205"/><path d="m84 62 17 6-11 13m206 178-4 16 17-2"/></svg>
+   <span class="speech">you’ve got this.<br><em>probably.</em></span>
+   <span class="character-spark" aria-hidden="true">✧</span>
+   <span class="floating-word word-one" aria-hidden="true"><small>01</small> remember</span>
+   <span class="floating-word word-two" aria-hidden="true"><small>02</small> bounce</span>
+   <img class="daven-main" src="assets/daven.webp" alt="Daven, a friendly orange hedgehog">
+   <div class="character-shadow" aria-hidden="true"></div>
+   <span class="character-spark two" aria-hidden="true">✦</span>
+   <span class="character-name"><span aria-hidden="true">↖</span> daven, your comeback coach</span>
+  </div></div>
+  <div class="steps-strip" aria-label="How it works">
+   <div class="mini-step"><span class="step-number">01</span><div><strong>memorize.</strong><small>give those words a good look.</small></div><span class="step-doodle" aria-hidden="true">✧</span></div>
+   <span class="step-arrow" aria-hidden="true">→</span>
+   <div class="mini-step"><span class="step-number">02</span><div><strong>type it back.</strong><small>same words. same order.</small></div><span class="step-doodle" aria-hidden="true">⌨</span></div>
+   <span class="step-arrow" aria-hidden="true">↶</span>
+   <div class="mini-step"><span class="step-number">03</span><div><strong>miss? bounce back.</strong><small>another chance. a little more time.</small></div><span class="step-doodle" aria-hidden="true">↶</span></div>
+  </div>
+  <p class="best-note"><span aria-hidden="true">✦</span> ${best?'your personal best: '+best.toLocaleString():'no game overs. just comebacks.'} <span aria-hidden="true">✦</span></p>
+ </section>`;
 }
 function scoreboard() {
  return `<div class="scoreboard" aria-label="Run statistics"><div class="stat"><span class="stat-label">level</span><span class="stat-value">${String(game.level).padStart(2,'0')}</span></div><div class="stat"><span class="stat-label">score</span><span class="stat-value">${game.score.toLocaleString()}</span></div><div class="stat"><span class="stat-label">multiplier</span><span class="stat-value">${game.multiplier}<small>×</small></span></div><div class="stat"><span class="stat-label">bounces</span><span class="stat-value">${game.totalBounces}<small> ↶</small></span></div></div>${game.bounces?`<div class="bounce-status" role="status"><span class="bounce-tier ${game.bounces===1?'current':''}">01 · +5s · cracked</span><span class="bounce-tier ${game.bounces===2?'current':''}">02 · +3s · distorted</span><span class="bounce-tier ${game.scuffed?'current':''}">03+ · +0s · SCUFFED</span></div>`:''}`;
 }
-function timer() { return `<div class="timer-row" role="timer" aria-label="${game.scuffed?'Shared time for memorizing and typing':'Time remaining'}"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div><span class="timer-number" id="timer-number"></span></div>`; }
+function timer() { return `<div class="timer-caption"><span>${game.scuffed?'ONE CLOCK. MAKE IT COUNT.':game.phase==='memorize'?'A MOMENT TO REMEMBER':'TIME TO TYPE IT BACK'}</span><span>${game.scuffed?'look + type':'you’ve got this'}</span></div><div class="timer-row" role="timer" aria-label="${game.scuffed?'Shared time for memorizing and typing':'Time remaining'}"><div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div><span class="timer-number" id="timer-number"></span></div>`; }
 function gameScreen() {
  const phase=game.phase;
  let content='',message='';
  if(phase==='memorize') {
-  content=`<div class="phase-label"><span class="step-dot"></span>01 / take a little look</div><h1 class="game-title">Make a little room in your brain.</h1><p class="game-description">Remember these ${game.words.length} words. Keep them in order.</p>${timer()}<div class="word-field ${game.level>=4?'drifting':''}">${game.words.map((w,i)=>`<div class="word-card" style="--i:${i}"><span class="word-order">${i+1}</span>${w}</div>`).join('')}</div><button class="secondary-button" id="ready-button">okay, I’ve got them <span aria-hidden="true">↵</span></button><div class="board-hint">${game.bounces>=3?'Scuffed bounce · looking uses your typing time. Hide the words when you’re ready.':game.bounces?'Same words. A little more breathing room.':'Take your time. Well, some of it.'}</div>`;
+  content=`<div class="phase-label"><span class="step-dot"></span>01 / take a little look</div><h1 class="game-title">A little room in your brain.</h1><p class="game-description">Remember these ${game.words.length} words. Keep them in order.</p>${timer()}<div class="word-field ${game.level>=4?'drifting':''}">${game.words.map((w,i)=>`<div class="word-card" style="--i:${i}"><span class="word-order">${i+1}</span>${w}</div>`).join('')}</div><button class="secondary-button" id="ready-button">okay, I’ve got them <span aria-hidden="true">↵</span></button><div class="board-hint">${game.bounces>=3?'Scuffed bounce · looking uses your typing time. Hide the words when you’re ready.':game.bounces?'Same words. A little more breathing room.':'Take your time. Well, some of it.'}</div>`;
   message=game.bounces===0?'Just a few words. What could possibly go wrong?':game.bounces===1?'A fresh start. Same words. You know the drill.':game.bounces===2?'Okay, this is officially a comeback story.':'Still here? I like your spirit. Watch that clock!';
  } else if(phase==='type') {
   content=`<div class="phase-label"><span class="step-dot"></span>02 / over to you</div><h1 class="game-title">Out of sight. Still in mind?</h1><p class="game-description">Type the words in the same order. Space or Enter locks each one.</p>${timer()}<div class="recall-slots" id="recall-slots">${slots()}</div><form class="input-wrap" id="word-form"><label class="sr-only" for="word-input">Type the next word</label><input id="word-input" class="word-input" type="text" placeholder="first word goes here…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" aria-describedby="type-hint" maxlength="160"><button class="submit-button" type="submit" aria-label="Submit word">↵</button></form><div class="board-hint" id="type-hint">${game.scuffed?'SCUFFED · no timer refill · ':''}word <span id="word-progress">${game.index+1}</span> of ${game.words.length} · you’ve got this.</div>`;
@@ -63,6 +89,7 @@ function render(force=false){
  const damage=['menu','summary'].includes(game.phase)?0:game.bounces;
  audioDirector.setScene({phase:game.phase,bounces:game.bounces||0,paused:game.paused});
  document.body.dataset.damage=Math.min(3,damage);
+ document.body.dataset.phase=game.phase;
  $('#screen-damage').innerHTML=screenCracks(damage);
  document.body.classList.toggle('impact',game.phase==='fail');
  app.innerHTML=game.phase==='menu'?menu():game.phase==='summary'?summary():gameScreen();
