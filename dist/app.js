@@ -40,8 +40,6 @@ function menu() {
    <p class="tagline">Give your brain <strong>a little bounce.</strong></p><p class="landing-description">Remember a few words. Type them back.<br>Three bounces. Make your comeback count.</p>
    <div class="start-area"><button class="primary-button" id="start-button">let’s bounce ${iconArrow}</button>${best?personalBest("best-note"):'<p class="keyboard-note">press <kbd>enter ↵</kbd> to jump in</p>'}</div>
   </div><div class="character-scene">
-   <div class="character-sun" aria-hidden="true"><div class="sun-ring"></div></div>
-   <svg class="character-trail" viewBox="0 0 350 350" aria-hidden="true"><path d="M57 266C-6 211 12 90 99 69M267 68c75 43 84 157 25 205"/><path d="m84 62 17 6-11 13m206 178-4 16 17-2"/></svg>
    <span class="speech">you’ve got this.<br><em>probably.</em></span>
    <span class="character-spark" aria-hidden="true">✧</span>
    <span class="floating-word word-one" aria-hidden="true"><small>01</small> remember</span>
