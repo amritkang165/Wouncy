@@ -1,11 +1,13 @@
 import { Game, CONFIG } from './engine.js';
 import { screenCracks } from './damage.js';
 import { ArcadeAudio } from './audio.js';
+import { mountCompanion } from './companion.js';
 const $ = (selector) => document.querySelector(selector);
 const app = $('#app');
 const game = new Game();
 const help = $('#help-dialog');
 let drawnPhase = '', drawnPause = false, fieldValue = '', frame = 0, returnFocus = null, helpPaused = false;
+let disposeCompanion=()=>{};
 let best = 0;
 try { best = Number(localStorage.getItem('bounce-back-best-v2')) || 0; } catch {}
 let soundOn = true;
@@ -95,7 +97,9 @@ function render(force=false){
  document.body.dataset.phase=game.phase;
  $('#screen-damage').innerHTML=screenCracks(damage);
  document.body.classList.toggle('impact',game.phase==='fail'||(game.phase==='summary'&&game.gameOver));
+ disposeCompanion();disposeCompanion=()=>{};
  app.innerHTML=game.phase==='menu'?menu():game.phase==='summary'?summary():gameScreen();
+ if(game.phase==='menu')disposeCompanion=mountCompanion($('.menu'));
  if(game.phase==='type'&&!game.paused){const input=$('#word-input');input.value=fieldValue;input.focus({preventScroll:true});}
  if(game.paused&&!help.open)$('#resume-button')?.focus({preventScroll:true});
  $('#start-button')?.addEventListener('click',start);

@@ -130,3 +130,14 @@ body[data-damage="2"] .landscape,body[data-damage="2"] .game-shell{filter:satura
 .personal-best.best-note{margin:0}.personal-best .best-badge-star{font:26px var(--display);color:#a18447;margin:0}.personal-best small{display:block;font:650 8px/1.6 var(--body);letter-spacing:1.2px;text-transform:uppercase}.personal-best strong{display:block;font:26px/1.1 var(--display);color:var(--orange-dark)}.personal-best strong span{font-size:10px;color:#778165}.personal-best.is-record{border-color:#b2865e;background:#ede0c9}.summary .personal-best{margin:10px auto 0}.start-area{flex-wrap:wrap}
 @media(max-width:800px){.start-area .personal-best{margin-top:13px}}
 @media(max-width:600px){.start-area .personal-best{margin-top:16px;padding:9px 15px}.personal-best strong{font-size:25px}}
+/* Curious, gentle motion. The wrapper follows the mouse; the original image keeps its idle bounce. */
+.character-scene{--look-x:0px;--look-y:0px;--look-tilt:0deg;--curiosity:0}
+.daven-hero{transform:translate(var(--look-x),var(--look-y)) rotate(var(--look-tilt)) scale(calc(1 - var(--curiosity)*.025),calc(1 + var(--curiosity)*.045));transform-origin:50% 90%;will-change:transform}
+.character-scene .floating-word{translate:calc(var(--look-x)*-.3) calc(var(--look-y)*-.25)}
+.character-scene .character-spark{translate:calc(var(--look-x)*.4) calc(var(--look-y)*.3)}
+.character-scene .floating-word{animation-name:companion-ticket}
+@keyframes companion-ticket{0%,100%{rotate:0deg}50%{rotate:2deg}}
+.daven-delighted .daven-hero .daven-prop{animation:daven-sparkle .65s ease-out both}
+@keyframes daven-sparkle{0%,100%{scale:1;rotate:0deg}45%{scale:1.3;rotate:25deg}}
+.primary-button:hover>span{transform:translate(2px,-2px)}
+@media(prefers-reduced-motion:reduce),(hover:none),(pointer:coarse){.daven-hero{transform:none;will-change:auto}.character-scene .floating-word,.character-scene .character-spark{translate:none}}

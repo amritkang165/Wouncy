@@ -23,7 +23,7 @@ Open http://localhost:4173. The deployable game is entirely inside `dist/` and w
 - Escape pauses. Leaving the tab or opening instructions automatically pauses an active timer.
 - Finish run shows your score, levels, bounces, comeback, and per-level results. Your best score saves in this browser when storage is available.
 - Sound starts enabled on each visit and can be toggled with the sound button. After the first click or key press, bundled CC0 electronic tracks play on the menu, during a run, and on the summary. Short recorded effects mark starting, hiding words, locking a word, clearing, retrying, and finishing. The existing “BOUNCE BACK” chant plays on failure, and gameplay music and the chant distort progressively with bounce count. Music continues through pause, instructions, and game over. Mute and hidden tabs stop audio; returning continues the music from its saved position while an active run stays paused. All audio loads from local assets.
-- Daven appears throughout the game using original Haven artwork: greeting, pondering, typing, bouncing back, celebrating, resting, guiding, and cheering at the summary. Animations respect reduced-motion preferences.
+- Daven appears throughout the game using original Haven artwork: greeting, pondering, typing, bouncing back, celebrating, resting, guiding, and cheering at the summary. On the menu, Daven gently follows the mouse, stretches as it approaches, and sparkles on click. Animations respect reduced-motion preferences and keep a quiet touch fallback.
 
 ## Development
 
