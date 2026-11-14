@@ -22,7 +22,7 @@ Open http://localhost:4173. The deployable game is entirely inside `dist/` and w
 - Clean clears raise your score multiplier, up to 3×. Clears after 2+ bounces earn comeback points.
 - Escape pauses. Leaving the tab or opening instructions automatically pauses an active timer.
 - Finish run shows your score, levels, bounces, comeback, and per-level results. Your best score saves in this browser when storage is available.
-- Sound is optional. Short tones are synthesized locally using Web Audio.
+- Sound is optional. The bundled “BOUNCE BACK” chant plays on failure. A chiptune loop, warped stings, and the chant distort progressively with bounce count. Clean clears get a quiet sting. Pause, mute, and hidden tabs stop audio.
 
 ## Development
 
@@ -49,3 +49,5 @@ The PRD's Python/Pygame distribution was adapted to a browser game at the user's
 ## Contribution workflow
 
 Commit each completed feature or fix separately with a descriptive message. Run the relevant checks before committing. Keep unrelated changes out of feature commits.
+
+The failure chant is bundled as a short PCM recording synthesized with the macOS Eddy voice. It needs no speech service or network request beyond loading the local asset.

@@ -1,5 +1,6 @@
 import { Game, CONFIG } from './engine.js';
 import { screenCracks } from './damage.js';
+import { ArcadeAudio } from './audio.js';
 const $ = (selector) => document.querySelector(selector);
 const app = $('#app');
 const game = new Game();
@@ -7,8 +8,9 @@ const help = $('#help-dialog');
 let drawnPhase = '', drawnPause = false, fieldValue = '', frame = 0, returnFocus = null, helpPaused = false;
 let best = 0;
 try { best = Number(localStorage.getItem('bounce-back-best')) || 0; } catch {}
-let soundOn = false, audio = null;
-try { soundOn = localStorage.getItem('bounce-back-sound') === 'true'; } catch {}
+let soundOn = true;
+const audioDirector=new ArcadeAudio();
+try { soundOn = localStorage.getItem('bounce-back-sound') !== 'false'; } catch {}
 const soundButton = $('#sound-button');
 function updateSound() {
  soundButton.setAttribute('aria-pressed',String(soundOn));
@@ -16,21 +18,8 @@ function updateSound() {
  soundButton.querySelector('span').textContent=soundOn?'sound on':'sound off';
  soundButton.querySelector('path').setAttribute('d',soundOn?'M11 5 6 9H3v6h3l5 4V5Zm5 3a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14':'M11 5 6 9H3v6h3l5 4V5Zm5 4 5 6m0-6-5 6');
 }
-function playSound(kind) {
- if(!soundOn)return;
- try {
-  if(!audio)audio=new (window.AudioContext||window.webkitAudioContext)();
-  if(audio.state==='suspended')audio.resume();
-  const notes={start:[262,330,392],lock:[523],pass:[392,523,659,784],fail:[247,196,147],retry:[196,262,330],tick:[440]}[kind]||[330];
-  notes.forEach((frequency,index)=>{
-   const osc=audio.createOscillator(), gain=audio.createGain(), start=audio.currentTime+index*.075;
-   osc.type=kind==='fail'?'triangle':'sine';osc.frequency.setValueAtTime(frequency,start);
-   gain.gain.setValueAtTime(0,start);gain.gain.linearRampToValueAtTime(.065,start+.012);gain.gain.exponentialRampToValueAtTime(.001,start+.13);
-   osc.connect(gain);gain.connect(audio.destination);osc.start(start);osc.stop(start+.15);
-  });
- }catch{}
-}
-soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem('bounce-back-sound',String(soundOn));}catch{}updateSound();if(soundOn)playSound('start');});
+function playSound(kind) { audioDirector.cue(kind,game.bounces||0); }
+soundButton.addEventListener('click',()=>{soundOn=!soundOn;try{localStorage.setItem('bounce-back-sound',String(soundOn));}catch{}updateSound();audioDirector.enable(soundOn).then(()=>{if(soundOn)playSound('start');});});
 updateSound();
 const iconArrow='<span aria-hidden="true">↗</span>';
 
@@ -72,6 +61,7 @@ function render(force=false){
  if(!force&&drawnPhase===game.phase&&drawnPause===game.paused)return;
  const last=drawnPhase; drawnPhase=game.phase;drawnPause=game.paused;
  const damage=['menu','summary'].includes(game.phase)?0:Math.min(3,game.bounces);
+ audioDirector.setScene({phase:game.phase,bounces:game.bounces||0,paused:game.paused});
  document.body.dataset.damage=damage;
  $('#screen-damage').innerHTML=screenCracks(damage);
  document.body.classList.toggle('impact',game.phase==='fail');
@@ -98,10 +88,10 @@ function render(force=false){
  }
  updateTimer();
 }
-function start(){fieldValue='';game.start();playSound('start');render();}
+function start(){audioDirector.enable(soundOn);fieldValue='';game.start();render();playSound('start');}
 function recall(){game.recall();fieldValue='';render();}
-function retry(){fieldValue='';game.retry();playSound('retry');render();}
-function next(){fieldValue='';game.next();playSound('start');render();}
+function retry(){fieldValue='';game.retry();render();playSound('retry');}
+function next(){fieldValue='';game.next();render();playSound('start');}
 function submit(){
  if(game.phase!=='type'||game.paused)return;
  const input=$('#word-input');const value=input.value;if(!value.trim())return;

@@ -2,7 +2,7 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 const root = resolve('dist');
-const types = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript', '.webp':'image/webp', '.ttf':'font/ttf', '.svg':'image/svg+xml' };
+const types = { '.html':'text/html', '.css':'text/css', '.js':'text/javascript', '.webp':'image/webp', '.ttf':'font/ttf', '.svg':'image/svg+xml', '.wav':'audio/wav' };
 http.createServer(async (req,res) => {
   const path = resolve(root, '.' + decodeURIComponent(new URL(req.url,'http://localhost').pathname));
   if (path !== root && !path.startsWith(root + sep)) { res.writeHead(403).end(); return; }

@@ -5,6 +5,17 @@ await mkdir('artifacts',{recursive:true});
 const baseURL=process.env.BASE_URL || 'http://localhost:4173';
 const browser=await chromium.launch({channel:'chrome',headless:true});
 const context=await browser.newContext({viewport:{width:1440,height:960},reducedMotion:'reduce'});
+await context.addInitScript(()=>{
+ window.chants=[];window.noteStarts=0;
+ const createOscillator=AudioContext.prototype.createOscillator;
+ AudioContext.prototype.createOscillator=function(...args){const source=createOscillator.apply(this,args),start=source.start.bind(source);source.start=(...args)=>{window.noteStarts++;return start(...args);};return source;};
+ const create=AudioContext.prototype.createBufferSource;
+ AudioContext.prototype.createBufferSource=function(...args){
+  const source=create.apply(this,args),start=source.start.bind(source),stop=source.stop.bind(source);
+  source.start=(at,...rest)=>{window.chants.push({duration:source.buffer?.duration,rate:source.playbackRate.value,start:at});return start(at,...rest);};
+  source.stop=(at)=>{const record=window.chants.at(-1);if(record)record.stop=at;return stop(at);};return source;
+ };
+});
 const page=await context.newPage();
 const errors=[];
 page.on('pageerror',e=>errors.push(e.message));
@@ -12,6 +23,8 @@ page.on('response',r=>{if(r.status()>=400)errors.push(r.status()+' '+r.url());})
 await page.goto(baseURL);await page.evaluate(()=>document.fonts.ready);
 await page.waitForTimeout(100);await page.screenshot({path:'artifacts/menu-desktop.png'});
 assert.match(await page.getByRole('heading',{level:1}).innerText(),/BOUNCE\s+BACK/);
+// Sound starts on for a new player; opting out is persisted.
+await page.getByRole('button',{name:'Turn sound off'}).click();
 await page.getByRole('button',{name:'how to play'}).click();
 assert.equal(await page.locator('#help-dialog').evaluate(e=>e.open),true);
 await page.getByRole('button',{name:'got it. let’s bounce'}).click();
@@ -86,21 +99,31 @@ await page.locator('#start-button').click();
 for(let bounce=1;bounce<=3;bounce++){
  await page.locator('#ready-button').click();await page.locator('#word-input').fill('wrong');await page.keyboard.press('Enter');
  await page.locator('#retry-button').waitFor();
+ await page.waitForFunction(n=>window.chants.length>=n,bounce);
  if(bounce===3)assert.match(await page.locator('.bounce-note').innerText(),/SCUFFED BOUNCE.*\+0 seconds/);
  await page.locator('#retry-button').click();
 }
 assert.match(await page.locator('.board-hint').innerText(),/looking uses your typing time/);
 assert.equal(await page.locator('body').getAttribute('data-damage'),'3');
 assert.match(await page.locator('.bounce-tier.current').innerText(),/SCUFFED/);
+await page.waitForFunction(()=>window.chants.length>=3);
+const chants=await page.evaluate(()=>window.chants);
+assert.ok(chants[0].rate>chants[1].rate&&chants[1].rate>chants[2].rate);
+assert.ok(chants.every(c=>c.duration/c.rate<.5));
 const fractures=await page.locator('#screen-damage').innerHTML();
 await page.locator('#pause-button').click();assert.equal(await page.locator('#screen-damage').innerHTML(),fractures);
+const notesAtPause=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);
+assert.equal(await page.evaluate(()=>window.noteStarts),notesAtPause,'paused music must stop scheduling notes');
 await page.locator('#resume-button').click();
-await page.screenshot({path:'artifacts/scuffed-desktop.png'});
+await page.waitForTimeout(100);await page.screenshot({path:'artifacts/scuffed-desktop.png'});
 await page.waitForTimeout(400);
 const sharedBefore=Number.parseFloat(await page.locator('#timer-number').innerText());
 await page.locator('#ready-button').click();await page.waitForTimeout(70);
 const sharedAfter=Number.parseFloat(await page.locator('#timer-number').innerText());
 assert.ok(sharedAfter<=sharedBefore && sharedBefore-sharedAfter<1,'scuffed recall must retain the shared deadline');
+await page.getByRole('button',{name:'Turn sound off'}).click();
+const mutedNotes=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);
+assert.equal(await page.evaluate(()=>window.noteStarts),mutedNotes,'muted audio must stop scheduling notes');
 assert.deepEqual(errors,[]);
 console.log('Browser checks passed: full game loop, retries, comeback bonus, pause, instructions, saved best, sound, and responsive layouts.');
 await browser.close();
