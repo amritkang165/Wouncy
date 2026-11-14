@@ -45,7 +45,7 @@ export class ArcadeAudio {
   this.filter.frequency.setTargetAtTime([7500,4500,2800,1800][level],now,.045);
   const key=['menu','summary'].includes(scene.phase)?'menu':'game';
   if(this.musicKey!==key){this.stopMusic();this.offset=0;this.musicKey=key;}
-  const playing=this.enabled&&!scene.paused&&!scene.hidden&&!scene.help;
+  const playing=this.enabled&&!scene.hidden;
   this.music.gain.setTargetAtTime(playing?AUDIO_CONFIG.musicVolume:0,now,.02);
   if(playing&&!this.musicSource)this.startMusic();else if(!playing)this.stopMusic();
  }

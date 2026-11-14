@@ -116,9 +116,9 @@ for(let bounce=1;bounce<=3;bounce++){
   if(bounce===2){
    const fractures=await page.locator('#screen-damage').innerHTML();
    await page.locator('#pause-button').click();assert.equal(await page.locator('#screen-damage').innerHTML(),fractures);
-   assert.equal(await page.evaluate(()=>window.activeLoops.size),0,'pause must stop continuous music');
+   assert.equal(await page.evaluate(()=>window.activeLoops.size),1,'pause must keep the background music playing');
    const notesAtPause=await page.evaluate(()=>window.noteStarts);await page.waitForTimeout(250);
-   assert.equal(await page.evaluate(()=>window.noteStarts),notesAtPause,'paused music must stop scheduling notes');
+   assert.equal(await page.evaluate(()=>window.noteStarts),notesAtPause,'pausing must retain the same background loop');
    await page.locator('#resume-button').click();
   }
  }
